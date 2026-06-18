@@ -85,8 +85,10 @@ browser's **localStorage**, so it survives a refresh. To start over, go to
 6. **Settings** (tabbed, fully built out for demo; edits gated to the **Admin**
    role — switch via the avatar menu):
    - **Access** — your role + permissions.
-   - **Calculation rules** — enable/disable income & asset methods and guideline
-     overlays; toggles take effect live in the workspace method/overlay dropdowns.
+   - **Calculation rules** — rename or enable/disable built-in income & asset
+     methods, **create new custom methods** from templates (bank-statement expense
+     factor, deposit balance factor, retirement haircut — each computes), and
+     toggle guideline overlays. All changes apply live in the workspace.
    - **Users & roles** — mock user directory (invite, assign role, enable/disable,
      remove) + a roles × permissions matrix.
    - **Tenant** — org name, data residency, session timeout, enforce-SSO.

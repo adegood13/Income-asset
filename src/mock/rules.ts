@@ -19,6 +19,7 @@ import type {
   ModuleKind,
 } from "../types";
 import { asNumber, formatMoney, formatNumber } from "../lib/format";
+import type { CustomMethod, CustomMethodKind } from "./config";
 
 interface MethodDef {
   id: string;
@@ -463,19 +464,144 @@ export const ASSET_METHODS: MethodDef[] = [
 
 const ALL_METHODS = [...INCOME_METHODS, ...ASSET_METHODS];
 
+/* ----------------------- Admin-defined custom methods --------------------- */
+// Parameterized method templates an admin can create/edit in Settings. The
+// `factorPct` meaning depends on the kind. These are registered at runtime from
+// tenant config (configureCustomMethods) so they behave like built-in methods.
+
+export const CUSTOM_METHOD_KINDS: {
+  id: CustomMethodKind;
+  label: string;
+  module: ModuleKind;
+  appliesTo: DocType[];
+  factorLabel: string;
+  factorHint: string;
+  defaultFactor: number;
+}[] = [
+  {
+    id: "bank_income_factor",
+    label: "Bank-statement income (expense factor)",
+    module: "income",
+    appliesTo: ["BankStatement"],
+    factorLabel: "Expense factor %",
+    factorHint: "Share of deposits treated as business expenses.",
+    defaultFactor: 50,
+  },
+  {
+    id: "asset_balance_factor",
+    label: "Deposit balance factor",
+    module: "asset",
+    appliesTo: ["BankStatement"],
+    factorLabel: "Balance factor %",
+    factorHint: "Share of average daily balance counted as assets.",
+    defaultFactor: 100,
+  },
+  {
+    id: "asset_haircut",
+    label: "Retirement haircut",
+    module: "asset",
+    appliesTo: ["InvestmentStatement"],
+    factorLabel: "Liquidation factor %",
+    factorHint: "Share of net vested balance counted after taxes/penalties.",
+    defaultFactor: 70,
+  },
+];
+
+function kindMeta(kind: CustomMethodKind) {
+  return CUSTOM_METHOD_KINDS.find((k) => k.id === kind) ?? CUSTOM_METHOD_KINDS[0];
+}
+
+function computeCustom(cm: CustomMethod, docs: DocumentRecord[]): CalculationResult {
+  const f = cm.factorPct / 100;
+  if (cm.kind === "bank_income_factor") {
+    const stmts = docs.filter((d) => d.docType === "BankStatement");
+    const months = stmts.length || 1;
+    const steps: CalcStep[] = [];
+    let total = 0;
+    stmts.forEach((d) => {
+      const eligible = d.fields
+        .filter((x) => x.group === "Deposits" && !x.excluded)
+        .reduce((s, x) => s + asNumber(x.value), 0);
+      total += eligible;
+      steps.push({ label: d.periodLabel, detail: "eligible deposits", result: round2(eligible) });
+    });
+    steps.push({ label: "Total eligible deposits", detail: `${months} months`, result: round2(total), emphasis: "subtotal" });
+    const adjusted = total * (1 - f);
+    steps.push({ label: `− ${cm.factorPct}% expense factor`, detail: "Business expense allowance", result: -round2(total * f), emphasis: "flag" });
+    const monthly = adjusted / months;
+    steps.push({ label: "Monthly qualifying income", detail: `${formatMoney(adjusted)} ÷ ${months} months`, result: round2(monthly) });
+    return result(cm.id, cm.label, monthly, steps);
+  }
+  if (cm.kind === "asset_balance_factor") {
+    const balances = findAll(docs, "Average Daily Balance");
+    const steps: CalcStep[] = balances.map((b) => ({ label: "Average daily balance", detail: b.provenance, result: asNumber(b.value) }));
+    const total = balances.reduce((a, b) => a + asNumber(b.value), 0);
+    const eligible = total * f;
+    steps.push({ label: `× ${cm.factorPct}% balance factor`, detail: "Counted as assets", result: round2(eligible), emphasis: "subtotal" });
+    return result(cm.id, cm.label, eligible, steps);
+  }
+  // asset_haircut
+  const vested = num(findField(docs, "Vested Balance"));
+  const loan = num(findField(docs, "Outstanding Loan"));
+  const base = vested - loan;
+  const eligible = base * f;
+  const steps: CalcStep[] = [
+    { label: "Vested balance", detail: "Retirement account", result: vested },
+    { label: "− Outstanding loan", detail: "Reduces accessible funds", result: -loan, emphasis: "flag" },
+    { label: "Net vested balance", detail: `${formatMoney(vested)} − ${formatMoney(loan)}`, result: round2(base), emphasis: "subtotal" },
+    { label: `× ${cm.factorPct}% liquidation factor`, detail: "After taxes & penalties", result: round2(eligible), emphasis: "subtotal" },
+  ];
+  return result(cm.id, cm.label, eligible, steps);
+}
+
+function buildCustomMethod(cm: CustomMethod): MethodDef {
+  const meta = kindMeta(cm.kind);
+  return {
+    id: cm.id,
+    label: cm.label,
+    module: cm.module,
+    appliesTo: meta.appliesTo,
+    blurb: `${meta.label} · ${meta.factorLabel} ${cm.factorPct}%. ${meta.factorHint}`,
+    compute: (docs) => computeCustom(cm, docs),
+  };
+}
+
+// Runtime registry populated from tenant config (Settings).
+let customMethods: MethodDef[] = [];
+let labelOverrides: Record<string, string> = {};
+
+export function configureCustomMethods(cms: CustomMethod[], overrides: Record<string, string>): void {
+  customMethods = cms.filter((c) => c.enabled).map(buildCustomMethod);
+  labelOverrides = overrides ?? {};
+}
+
+function withLabel(m: MethodDef): MethodDef {
+  const ov = labelOverrides[m.id];
+  return ov ? { ...m, label: ov } : m;
+}
+
+function findAnyMethod(id: string): MethodDef | undefined {
+  return [...ALL_METHODS, ...customMethods].find((m) => m.id === id);
+}
+
 // Methods for a module, optionally filtered to those relevant to the documents
 // present (so a bank-statement income analysis shows bank-statement methods,
-// not W-2 methods, and vice versa).
+// not W-2 methods, and vice versa). Includes admin-defined custom methods.
 export function getMethodsForModule(module: ModuleKind, docs?: DocumentRecord[]): MethodDef[] {
-  const all = module === "income" ? INCOME_METHODS : ASSET_METHODS;
-  if (!docs || docs.length === 0) return all;
-  const types = new Set(docs.map((d) => d.docType));
-  const relevant = all.filter((m) => !m.appliesTo || m.appliesTo.some((t) => types.has(t)));
-  return relevant.length > 0 ? relevant : all;
+  const base = module === "income" ? INCOME_METHODS : ASSET_METHODS;
+  const all = [...base, ...customMethods.filter((m) => m.module === module)];
+  let list = all;
+  if (docs && docs.length > 0) {
+    const types = new Set(docs.map((d) => d.docType));
+    const relevant = all.filter((m) => !m.appliesTo || m.appliesTo.some((t) => types.has(t)));
+    if (relevant.length > 0) list = relevant;
+  }
+  return list.map(withLabel);
 }
 
 export function getMethod(id: string): MethodDef | undefined {
-  return ALL_METHODS.find((m) => m.id === id);
+  const m = findAnyMethod(id);
+  return m ? withLabel(m) : undefined;
 }
 
 // Pick a sensible default method given the documents present.
@@ -541,9 +667,12 @@ export function getGuidelineLabel(id?: string): string | undefined {
  * call (versioned + per-tenant). The returned `steps[]` are the audit lineage.
  */
 export function runCalculation(docs: DocumentRecord[], methodId: string): CalculationResult {
-  const method = getMethod(methodId);
+  const method = findAnyMethod(methodId);
   if (!method) {
     return result("none", "No method selected", 0, []);
   }
-  return method.compute(docs);
+  const res = method.compute(docs);
+  // Reflect any admin rename in the stored/displayed method label.
+  res.methodLabel = labelOverrides[method.id] ?? res.methodLabel;
+  return res;
 }
