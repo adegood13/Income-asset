@@ -7,7 +7,7 @@
  * ========================================================================== */
 
 import type { Analysis, AnalysisStatus, DocType, ModuleKind, Note } from "../types";
-import { extractDocumentSync } from "./extraction";
+import { extractDocumentSync, extractBankStatementBundle } from "./extraction";
 import { defaultMethodFor, runCalculation } from "./rules";
 import { uid } from "../lib/id";
 
@@ -81,8 +81,31 @@ function build(spec: SeedSpec): Analysis {
   };
 }
 
+// A 12-month bank-statement income case (Non-QM), built directly since it holds
+// many monthly documents rather than a single canonical doc.
+function bankStatementIncomeSeed(): Analysis {
+  const documents = extractBankStatementBundle(12);
+  const method = "bank_income_personal";
+  return {
+    id: uid("ana"),
+    loanNumber: "LN-2026-00501",
+    module: "income",
+    borrowerName: "Jordan Avery",
+    status: "in_review",
+    documents,
+    method,
+    result: runCalculation(documents, method),
+    notes: [
+      mkNote(2, "12 months of personal bank statements. Large wire transfers excluded pending source docs; review each month's deposits."),
+    ],
+    createdAt: daysAgoISO(6, 9),
+    updatedAt: daysAgoISO(2, 11, 40),
+  };
+}
+
 export function buildSeedAnalyses(): Analysis[] {
   return [
+    bankStatementIncomeSeed(),
     // --- INCOME: clean salaried, high confidence -------------------------- //
     build({
       loanNumber: "LN-2026-00471",

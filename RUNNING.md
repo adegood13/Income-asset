@@ -63,6 +63,14 @@ browser's **localStorage**, so it survives a refresh. To start over, go to
      re-dock. *(Allow pop-ups for the site.)*
    - Header actions: **Save**, **Finalize** (locks the analysis), **Export**
      (printable worksheet or JSON), and an append-only **Notes** drawer.
+3c. **Bank-statement income (Non-QM)** — in **New analysis → Income**, pick
+   **"Bank statements (12–24 mo income)"** and choose 12 or 24 months. The blob
+   "uploads" as N monthly statements (try the seeded **LN-2026-00501**). In the
+   workspace: step through each month in the left column, edit any deposit,
+   **Include/Exclude** individual deposits (large wires are excluded by default),
+   and **+ Add deposit line item** for anything the system missed. The right
+   panel offers **Personal (avg deposits)** and **Business (50% expense factor)**
+   methods; the lineage shows each month's eligible total → sum → ÷ months.
 4. **PII mask toggle** (top bar) — flips identifier masking everywhere. Off by
    default (identifiers masked). **Now role-gated**: only roles with the
    `pii:reveal` permission can unmask. Switch roles from the avatar menu

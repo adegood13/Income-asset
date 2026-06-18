@@ -17,6 +17,11 @@ export interface CapturedField {
   overridden: boolean;
   note?: string;
   group?: string; // UI grouping: "Identifiers", "Income lines", "Add-backs", etc.
+  // Bank-statement income: a deposit excluded from the income calculation
+  // (e.g. an inter-account transfer or an undocumented large deposit).
+  excluded?: boolean;
+  // A line item the reviewer added by hand (not captured by extraction).
+  manual?: boolean;
 }
 
 export type DocType =
