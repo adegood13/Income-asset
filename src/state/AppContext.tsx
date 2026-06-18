@@ -23,6 +23,7 @@ import { defaultMethodFor, runCalculation } from "../mock/rules";
 import { uid, generateLoanNumber } from "../lib/id";
 import { type Permission, type Role, roleHas } from "../mock/roles";
 import { recordAudit } from "../mock/audit";
+import { type AppConfig, loadConfig, saveConfig } from "../mock/config";
 
 export type ThemeMode = "light" | "dark" | "system";
 
@@ -48,6 +49,10 @@ interface AppState {
   // null = policy off. Changing it requires `settings:manage`.
   confidenceLockThreshold: number | null;
   setConfidenceLockThreshold: (threshold: number | null) => void;
+
+  // Tenant / platform configuration (Settings screens, SEAM 8).
+  config: AppConfig;
+  updateConfig: (patch: Partial<AppConfig>) => void;
 
   // PII reveal toggle. Default false => identifiers are masked everywhere.
   // Revealing requires the `pii:reveal` permission and is audit-logged.
@@ -94,11 +99,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const raw = localStorage.getItem(FIELDLOCK_KEY);
     return raw === null || raw === "" ? null : Number(raw);
   });
+  const [config, setConfig] = useState<AppConfig>(() => loadConfig());
 
   // Persist on every change (SEAM 4 mock backend write).
   useEffect(() => {
     saveAnalyses(analyses);
   }, [analyses]);
+
+  // Persist tenant/platform config (SEAM 8).
+  useEffect(() => {
+    saveConfig(config);
+  }, [config]);
 
   // Apply the theme to <html> (class strategy), tracking the system preference.
   useEffect(() => {
@@ -143,6 +154,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const setTheme = useCallback((t: ThemeMode) => {
     setThemeState(t);
     localStorage.setItem(THEME_KEY, t);
+  }, []);
+
+  const updateConfig = useCallback((patch: Partial<AppConfig>) => {
+    setConfig((c) => ({ ...c, ...patch }));
   }, []);
 
   const setConfidenceLockThreshold = useCallback(
@@ -394,6 +409,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setTheme,
       confidenceLockThreshold,
       setConfidenceLockThreshold,
+      config,
+      updateConfig,
       reveal: revealState,
       setReveal,
       getAnalysis,
@@ -422,6 +439,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setTheme,
       confidenceLockThreshold,
       setConfidenceLockThreshold,
+      config,
+      updateConfig,
       revealState,
       setReveal,
       getAnalysis,

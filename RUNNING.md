@@ -82,10 +82,19 @@ browser's **localStorage**, so it survives a refresh. To start over, go to
 5. **Reports** → mock charts (volume by status, confidence distribution,
    override rate over time, average turn time) with a date-range filter and CSV
    export.
-6. **Settings** → live **access control** (your role + permissions), an
-   append-only **audit trail**, and an **admin field-lock policy** (lock fields at
-   or above a confidence score, e.g. ≥ 97% — admin role required). The rest are
-   "configured by engineering" placeholders.
+6. **Settings** (tabbed, fully built out for demo; edits gated to the **Admin**
+   role — switch via the avatar menu):
+   - **Access** — your role + permissions.
+   - **Calculation rules** — enable/disable income & asset methods and guideline
+     overlays; toggles take effect live in the workspace method/overlay dropdowns.
+   - **Users & roles** — mock user directory (invite, assign role, enable/disable,
+     remove) + a roles × permissions matrix.
+   - **Tenant** — org name, data residency, session timeout, enforce-SSO.
+   - **Security** — MFA, detokenization-requires-reason, mask style, audit
+     retention, IP allowlist, and the **field-lock policy** (lock fields at/above a
+     confidence score, e.g. ≥ 97%).
+   - **Audit log** — append-only privileged-action history.
+   - **Demo data** — reset sample analyses.
 
 ## The mock "seams" (engineering handoff)
 
@@ -102,6 +111,7 @@ replaces it with.
 | 5 | `src/mock/documentViewer.ts` | "View source document" — renders a facsimile of the captured page in a new tab. | A link to the original stored PDF/image (signed URL) with field regions overlaid. |
 | 6 | `src/mock/roles.ts` | RBAC — roles → permissions (`pii:reveal`, `analysis:edit`, …). Gates UI only. | Real authn (SSO/OIDC) + **server-enforced** authorization. |
 | 7 | `src/mock/audit.ts` | Append-only audit log of privileged actions (PII reveal, finalize, role switch). | The tamper-evident, server-side audit store with retention. |
+| 8 | `src/mock/config.ts` | Tenant/platform configuration (org, security, users, rule toggles) in localStorage; drives the Settings screens. | Per-tenant config services: identity/user directory, org admin, security policy, versioned rules config. |
 
 ## Tech stack
 
