@@ -94,7 +94,7 @@ export function DataPointsPanel({ analysisId, doc, locked, onView, onPopOut }: P
       <div className="mt-2 min-h-0 flex-1 space-y-5 overflow-y-auto pr-1 scroll-thin">
         {groups.map(([group, fields]) => (
           <div key={group}>
-            <div className="sticky top-0 z-[1] bg-surface/95 py-1.5 backdrop-blur">
+            <div className="mb-1 border-b border-ink-100 pb-1.5">
               <span className="eyebrow">{group}</span>
             </div>
             <div className="space-y-1">
