@@ -15,3 +15,17 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+# Security headers (defense-in-depth). The CSP allows the app's own assets,
+# Google Fonts, and inline styles (Tailwind + the print/source-doc windows).
+# Scripts are restricted to same-origin. Tighten further once a real backend /
+# CSP nonce pipeline exists.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains"

@@ -43,6 +43,9 @@ browser's **localStorage**, so it survives a refresh. To start over, go to
      a provenance hint, and an editable value. Edit a financial field and watch
      it flag as **overridden** (with a "was…" original and a reset). Add a
      per-field note. Identifier fields are masked until you toggle PII reveal.
+     **Each field's source citation is a link** — click it to open the source
+     document at that exact page with the field highlighted (fast low-confidence
+     review). Fields locked by the admin confidence policy grey out.
    - *Calculation* (right) — the qualifying figure, a **method dropdown** (switch
      it and the number + lineage change), the **step-by-step audit lineage**,
      Recalculate, and a **live agency/investor guideline selector** (all agencies
@@ -58,11 +61,20 @@ browser's **localStorage**, so it survives a refresh. To start over, go to
    - Header actions: **Save**, **Finalize** (locks the analysis), **Export**
      (printable worksheet or JSON), and an append-only **Notes** drawer.
 4. **PII mask toggle** (top bar) — flips identifier masking everywhere. Off by
-   default (identifiers masked).
+   default (identifiers masked). **Now role-gated**: only roles with the
+   `pii:reveal` permission can unmask. Switch roles from the avatar menu
+   (Underwriter / Processor / Auditor / Admin) and watch the toggle, editing, and
+   finalize gate accordingly. Privileged actions are written to an audit log
+   (Settings → Security).
+4b. **Dark mode** — theme toggle in the top bar cycles Light / Dark / System;
+   the choice persists and applies before first paint (no flash).
 5. **Reports** → mock charts (volume by status, confidence distribution,
    override rate over time, average turn time) with a date-range filter and CSV
    export.
-6. **Settings** → placeholder list of areas "configured by engineering".
+6. **Settings** → live **access control** (your role + permissions), an
+   append-only **audit trail**, and an **admin field-lock policy** (lock fields at
+   or above a confidence score, e.g. ≥ 97% — admin role required). The rest are
+   "configured by engineering" placeholders.
 
 ## The mock "seams" (engineering handoff)
 
@@ -77,6 +89,8 @@ replaces it with.
 | 3 | `src/mock/tokenization.ts` | PII masking for identifier fields + the global reveal toggle. | The real tokenization vault + detokenization service. |
 | 4 | `src/mock/store.ts` | `localStorage`-backed persistence for analyses and notes (seeded from `src/mock/seed.ts`). | The real backend, append-only audit store, and auth. |
 | 5 | `src/mock/documentViewer.ts` | "View source document" — renders a facsimile of the captured page in a new tab. | A link to the original stored PDF/image (signed URL) with field regions overlaid. |
+| 6 | `src/mock/roles.ts` | RBAC — roles → permissions (`pii:reveal`, `analysis:edit`, …). Gates UI only. | Real authn (SSO/OIDC) + **server-enforced** authorization. |
+| 7 | `src/mock/audit.ts` | Append-only audit log of privileged actions (PII reveal, finalize, role switch). | The tamper-evident, server-side audit store with retention. |
 
 ## Tech stack
 

@@ -16,7 +16,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Mobile sidebar drawer */}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 bg-navy/50 backdrop-blur-sm animate-fade-in" onClick={() => setMobileOpen(false)} />
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setMobileOpen(false)} />
           <div className="absolute inset-y-0 left-0 animate-slide-in">
             <Sidebar onNavigate={() => setMobileOpen(false)} />
           </div>

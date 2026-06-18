@@ -37,6 +37,10 @@ export function PopoutWindow({ title, onClose, onReturn, children, width = 520, 
     }
     win.document.title = `AskBobAI · ${title}`;
     copyStyles(document, win.document);
+    // Match the current theme (the cloned stylesheet carries the .dark vars).
+    if (document.documentElement.classList.contains("dark")) {
+      win.document.documentElement.classList.add("dark");
+    }
     win.document.body.style.margin = "0";
 
     const container = win.document.createElement("div");
@@ -72,7 +76,7 @@ export function PopoutWindow({ title, onClose, onReturn, children, width = 520, 
   return createPortal(
     <div className="flex min-h-screen flex-col">
       {/* Popped-window chrome */}
-      <div className="flex items-center justify-between gap-3 border-b border-ink-200 bg-white px-4 py-2.5">
+      <div className="flex items-center justify-between gap-3 border-b border-ink-200 bg-surface px-4 py-2.5">
         <span className="eyebrow">{title} · popped out</span>
         <button className="btn-secondary px-3 py-1.5 text-xs" onClick={onReturn}>
           Return to main window

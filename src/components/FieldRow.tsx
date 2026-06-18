@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { EyeOff, MessageSquarePlus, MessageSquareText, RotateCcw, PenLine } from "lucide-react";
+import { EyeOff, MessageSquarePlus, MessageSquareText, RotateCcw, PenLine, FileSearch, Lock } from "lucide-react";
 import type { CapturedField } from "../types";
 import { ConfidenceBadge } from "./ConfidenceBadge";
 import { useApp } from "../state/AppContext";
@@ -11,10 +11,11 @@ interface Props {
   docId: string;
   field: CapturedField;
   locked: boolean;
+  onLocate?: (fieldId: string) => void;
 }
 
-export function FieldRow({ analysisId, docId, field, locked }: Props) {
-  const { reveal, updateField, resetField } = useApp();
+export function FieldRow({ analysisId, docId, field, locked, onLocate }: Props) {
+  const { reveal, updateField, resetField, confidenceLockThreshold } = useApp();
   const [draft, setDraft] = useState(String(field.value));
   const [editingNote, setEditingNote] = useState(false);
   const [noteDraft, setNoteDraft] = useState(field.note ?? "");
@@ -28,6 +29,9 @@ export function FieldRow({ analysisId, docId, field, locked }: Props) {
   const isIdentifier = field.type === "identifier";
   const isFinancial = field.type === "financial";
   const masked = isIdentifier && !reveal;
+  // Admin policy: lock high-confidence fields from editing.
+  const policyLocked = confidenceLockThreshold != null && field.confidence >= confidenceLockThreshold;
+  const valueLocked = locked || policyLocked;
 
   const commit = () => {
     const raw = draft.trim();
@@ -45,26 +49,46 @@ export function FieldRow({ analysisId, docId, field, locked }: Props) {
   return (
     <div
       className={`group rounded-lg border px-3 py-2.5 transition
-        ${field.overridden ? "border-[#F5A623]/40 bg-[#FFFBF2]" : "border-transparent hover:border-ink-200 hover:bg-ink-50"}`}
+        ${field.overridden ? "border-[#F5A623]/40 bg-[#FFFBF2] dark:bg-[#211D12]" : "border-transparent hover:border-ink-200 hover:bg-ink-50"}`}
     >
       <div className="flex items-start gap-3">
         {/* Label + provenance */}
         <div className="min-w-0 flex-1 pt-1.5">
-          <div className="flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-1.5">
             <span className="text-sm font-medium text-ink-700">{field.label}</span>
             {field.overridden && (
-              <span className="inline-flex items-center gap-1 rounded bg-[#FFF4E0] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#9A6300]">
+              <span className="inline-flex items-center gap-1 rounded bg-[#FFF4E0] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#9A6300] dark:bg-[#2A2412] dark:text-[#E7B264]">
                 <PenLine className="h-2.5 w-2.5" /> Overridden
               </span>
             )}
+            {policyLocked && (
+              <span
+                className="inline-flex items-center gap-1 rounded bg-ink-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-ink-500"
+                title={`Locked by admin policy — confidence ≥ ${confidenceLockThreshold}%`}
+              >
+                <Lock className="h-2.5 w-2.5" /> Locked
+              </span>
+            )}
           </div>
-          <div className="mt-0.5 truncate text-[11px] text-ink-400" title={field.provenance}>
-            {field.provenance}
-          </div>
+          {/* Provenance doubles as a deep-link to the exact page in the source doc. */}
+          {onLocate ? (
+            <button
+              onClick={() => onLocate(field.id)}
+              title={`Open source document at: ${field.provenance}`}
+              className="mt-0.5 inline-flex max-w-full items-center gap-1 text-[11px] text-ink-400 transition hover:text-brand"
+            >
+              <FileSearch className="h-3 w-3 shrink-0" />
+              <span className="truncate hover:underline">{field.provenance}</span>
+            </button>
+          ) : (
+            <div className="mt-0.5 truncate text-[11px] text-ink-400" title={field.provenance}>
+              {field.provenance}
+            </div>
+          )}
           {field.overridden && (
             <button
               onClick={() => resetField(analysisId, docId, field.id)}
-              disabled={locked}
+              disabled={valueLocked}
               className="mt-1 inline-flex items-center gap-1 text-[11px] font-medium text-ink-500 hover:text-ink-800 disabled:opacity-50"
               title="Restore captured value"
             >
@@ -94,12 +118,12 @@ export function FieldRow({ analysisId, docId, field, locked }: Props) {
                 </span>
               )}
               <input
-                className={`input font-mono ${isFinancial ? "pl-6 text-right" : ""} ${
-                  field.overridden ? "border-[#F5A623]/50" : ""
-                }`}
+                className={`input font-mono disabled:cursor-not-allowed disabled:bg-ink-100 disabled:text-ink-400 ${
+                  isFinancial ? "pl-6 text-right" : ""
+                } ${field.overridden ? "border-[#F5A623]/50" : ""}`}
                 value={draft}
                 inputMode={isFinancial ? "decimal" : "text"}
-                disabled={locked}
+                disabled={valueLocked}
                 onFocus={() => (focused.current = true)}
                 onChange={(e) => setDraft(e.target.value)}
                 onBlur={() => {
@@ -136,7 +160,7 @@ export function FieldRow({ analysisId, docId, field, locked }: Props) {
 
       {/* Per-field note editor */}
       {editingNote && (
-        <div className="mt-2 rounded-lg border border-ink-200 bg-white p-2.5 animate-fade-in">
+        <div className="mt-2 rounded-lg border border-ink-200 bg-surface p-2.5 animate-fade-in">
           <textarea
             className="input min-h-[60px] resize-y text-sm"
             placeholder="Add a note about this field…"

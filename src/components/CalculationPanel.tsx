@@ -37,7 +37,7 @@ export function CalculationPanel({
         {onPopOut && (
           <button
             onClick={onPopOut}
-            className="absolute right-2.5 top-2.5 z-10 rounded-md p-1.5 text-white/80 transition hover:bg-white/15 hover:text-white"
+            className="absolute right-2.5 top-2.5 z-10 rounded-md p-1.5 text-white/80 transition hover:bg-surface/15 hover:text-white"
             title="Pop out into a separate window"
             aria-label="Pop out calculation panel"
           >
@@ -97,7 +97,7 @@ export function CalculationPanel({
                 aria-disabled
                 title="Applying the overlay to the math is coming soon"
               >
-                <span className="ml-0.5 h-4 w-4 rounded-full bg-white" />
+                <span className="ml-0.5 h-4 w-4 rounded-full bg-surface" />
               </span>
             </div>
           </div>
@@ -155,7 +155,7 @@ export function CalculationPanel({
                   <li key={i} className="relative pl-4 pb-3 last:pb-0">
                     <span
                       className={`absolute -left-[5px] top-1.5 h-2.5 w-2.5 rounded-full border-2 border-white ${
-                        last ? "bg-brand" : isFlag ? "bg-conf-low" : isSub ? "bg-navy" : "bg-ink-300"
+                        last ? "bg-brand" : isFlag ? "bg-conf-low" : isSub ? "bg-ink-700" : "bg-ink-300"
                       }`}
                     />
                     <div

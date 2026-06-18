@@ -28,8 +28,8 @@ export const CONFIDENCE_LABEL: Record<ConfidenceTier, string> = {
 // Tailwind class bundles per tier (text + soft background + border).
 export const CONFIDENCE_CLASSES: Record<ConfidenceTier, string> = {
   high: "text-green-deep bg-green-tint border-green/30",
-  med: "text-[#9A6300] bg-[#FFF6E5] border-[#F5A623]/35",
-  low: "text-danger bg-danger-tint border-danger/30",
+  med: "text-[#9A6300] bg-[#FFF6E5] border-[#F5A623]/35 dark:text-[#E7B264] dark:bg-[#2A2412]",
+  low: "text-danger bg-danger-tint border-danger/30 dark:text-[#F18B86]",
 };
 
 export function hexFor(c: Confidence): string {

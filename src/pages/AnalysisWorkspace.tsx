@@ -47,7 +47,7 @@ function loadCols(): { left: number; right: number } {
 type PanelKey = "docs" | "data" | "calc";
 
 export function AnalysisWorkspace({ id }: { id: string }) {
-  const { getAnalysis, reveal, setMethod, setGuideline, recalc, finalize, setStatus } = useApp();
+  const { getAnalysis, reveal, can, setMethod, setGuideline, recalc, finalize, setStatus } = useApp();
   const toast = useToast();
   const analysis = getAnalysis(id);
   const wide = useMediaQuery("(min-width: 1280px)");
@@ -110,7 +110,10 @@ export function AnalysisWorkspace({ id }: { id: string }) {
     );
   }
 
-  const locked = analysis.status === "finalized";
+  // Role gating: a role without analysis:edit gets a read-only workspace.
+  const canEdit = can("analysis:edit");
+  const readOnlyByRole = !canEdit && analysis.status !== "finalized";
+  const locked = analysis.status === "finalized" || !canEdit;
   const selectedDoc =
     analysis.documents.find((d) => d.id === selectedDocId) ?? analysis.documents[0];
   const ov = overrideCount(analysis);
@@ -196,7 +199,7 @@ export function AnalysisWorkspace({ id }: { id: string }) {
 
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-center gap-4">
-            <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-navy text-white">
+            <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-surface-dark text-white">
               {analysis.module === "income" ? (
                 <Banknote className="h-6 w-6" />
               ) : (
@@ -207,6 +210,11 @@ export function AnalysisWorkspace({ id }: { id: string }) {
               <div className="flex items-center gap-3">
                 <h1 className="font-mono text-xl font-semibold text-navy">{analysis.loanNumber}</h1>
                 <StatusChip status={analysis.status} />
+                {readOnlyByRole && (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-ink-200 bg-ink-50 px-2.5 py-0.5 text-xs font-semibold text-ink-500">
+                    <Lock className="h-3 w-3" /> Read-only
+                  </span>
+                )}
               </div>
               <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-500">
                 <MaskedText label="borrower name" value={analysis.borrowerName} className="font-medium text-ink-600" />
@@ -217,7 +225,7 @@ export function AnalysisWorkspace({ id }: { id: string }) {
                 {ov > 0 && (
                   <>
                     <span className="text-ink-300">·</span>
-                    <span className="text-[#9A6300]">{ov} override{ov === 1 ? "" : "s"}</span>
+                    <span className="text-[#9A6300] dark:text-[#E7B264]">{ov} override{ov === 1 ? "" : "s"}</span>
                   </>
                 )}
               </div>
@@ -246,7 +254,7 @@ export function AnalysisWorkspace({ id }: { id: string }) {
               {exportOpen && (
                 <>
                   <div className="fixed inset-0 z-10" onClick={() => setExportOpen(false)} />
-                  <div className="absolute right-0 z-20 mt-2 w-56 overflow-hidden rounded-xl border border-ink-200 bg-white py-1 shadow-float animate-scale-in">
+                  <div className="absolute right-0 z-20 mt-2 w-56 overflow-hidden rounded-xl border border-ink-200 bg-surface py-1 shadow-float animate-scale-in">
                     <button
                       className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm text-ink-700 hover:bg-ink-50"
                       onClick={() => {
@@ -278,16 +286,18 @@ export function AnalysisWorkspace({ id }: { id: string }) {
               Save
             </button>
 
-            {locked ? (
+            {analysis.status === "finalized" ? (
               <span className="inline-flex items-center gap-2 rounded-full border border-green/30 bg-green-tint px-4 py-2.5 text-sm font-semibold text-green-deep">
                 <Lock className="h-4 w-4" />
                 Finalized
               </span>
             ) : (
-              <button className="btn-primary" onClick={() => setFinalizeOpen(true)}>
-                <Lock className="h-4 w-4" />
-                Finalize
-              </button>
+              can("analysis:finalize") && (
+                <button className="btn-primary" onClick={() => setFinalizeOpen(true)}>
+                  <Lock className="h-4 w-4" />
+                  Finalize
+                </button>
+              )
             )}
           </div>
         </div>
@@ -385,10 +395,10 @@ export function AnalysisWorkspace({ id }: { id: string }) {
           </>
         }
       >
-        <div className="flex items-start gap-3 rounded-xl border border-[#F5A623]/30 bg-[#FFF6E5] p-4">
-          <ShieldAlert className="h-5 w-5 shrink-0 text-[#9A6300]" />
+        <div className="flex items-start gap-3 rounded-xl border border-[#F5A623]/30 bg-[#FFF6E5] p-4 dark:bg-[#2A2412]">
+          <ShieldAlert className="h-5 w-5 shrink-0 text-[#9A6300] dark:text-[#E7B264]" />
           <div className="text-sm text-ink-700">
-            <p className="font-semibold text-[#9A6300]">Fields will become read-only.</p>
+            <p className="font-semibold text-[#9A6300] dark:text-[#E7B264]">Fields will become read-only.</p>
             <p className="mt-1">
               The calculation lineage and captured values are frozen. Notes remain append-only.
               In production this would write a signed, immutable record to the audit store.
@@ -417,7 +427,7 @@ function ResizeHandle({ onPointerDown }: { onPointerDown: (e: React.PointerEvent
 function PoppedPlaceholder({ title, onReturn }: { title: string; onReturn: () => void }) {
   return (
     <div className="flex h-full min-h-[220px] flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-ink-300 bg-ink-50 p-6 text-center">
-      <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-brand shadow-card">
+      <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-surface text-brand shadow-card">
         <ExternalLink className="h-5 w-5" />
       </span>
       <div>

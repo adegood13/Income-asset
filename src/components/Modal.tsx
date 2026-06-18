@@ -23,12 +23,12 @@ export function Modal({ open, onClose, title, subtitle, children, footer, width 
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 sm:items-center">
-      <div className="fixed inset-0 bg-navy/40 backdrop-blur-sm animate-fade-in" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={onClose} />
       <div
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`relative z-10 w-full ${width} animate-scale-in rounded-2xl bg-white shadow-float`}
+        className={`relative z-10 w-full ${width} animate-scale-in rounded-2xl bg-surface shadow-float`}
       >
         <div className="flex items-start justify-between gap-4 border-b border-ink-200 px-6 py-5">
           <div>

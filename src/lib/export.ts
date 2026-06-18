@@ -6,6 +6,7 @@ import { DOC_TYPE_LABEL } from "../mock/extraction";
 import { maskIdentifier } from "../mock/tokenization";
 import { formatMoney, formatDateTime, asNumber } from "./format";
 import { tierFor, CONFIDENCE_HEX } from "./confidence";
+import { escapeHtml } from "./html";
 
 function triggerDownload(filename: string, content: string, mime: string) {
   const blob = new Blob([content], { type: mime });
@@ -42,17 +43,17 @@ export function openPrintableWorksheet(analysis: Analysis, reveal: boolean) {
         .map((field) => {
           const hex = CONFIDENCE_HEX[tierFor(field.confidence)];
           return `<tr>
-            <td>${field.label}</td>
-            <td class="mono">${fieldDisplay(field.label, field.value, field.type, reveal)}${
+            <td>${escapeHtml(field.label)}</td>
+            <td class="mono">${escapeHtml(fieldDisplay(field.label, field.value, field.type, reveal))}${
               field.overridden ? ' <span class="ov">(overridden)</span>' : ""
             }</td>
             <td class="mono" style="color:${hex}">${field.confidence}</td>
-            <td class="prov">${field.provenance}</td>
+            <td class="prov">${escapeHtml(field.provenance)}</td>
           </tr>`;
         })
         .join("");
       return `<section>
-        <h3>${DOC_TYPE_LABEL[d.docType]} <span class="muted">· ${d.periodLabel}</span></h3>
+        <h3>${escapeHtml(DOC_TYPE_LABEL[d.docType])} <span class="muted">· ${escapeHtml(d.periodLabel)}</span></h3>
         <table>
           <thead><tr><th>Field</th><th>Value</th><th>Conf.</th><th>Source</th></tr></thead>
           <tbody>${rows}</tbody>
@@ -65,7 +66,7 @@ export function openPrintableWorksheet(analysis: Analysis, reveal: boolean) {
     ? analysis.result.steps
         .map(
           (s) => `<tr>
-            <td>${s.label}<div class="prov">${s.detail}</div></td>
+            <td>${escapeHtml(s.label)}<div class="prov">${escapeHtml(s.detail)}</div></td>
             <td class="mono">${formatMoney(s.result, { cents: true })}</td>
           </tr>`,
         )
@@ -76,15 +77,15 @@ export function openPrintableWorksheet(analysis: Analysis, reveal: boolean) {
     ? analysis.notes
         .map(
           (n) =>
-            `<li><strong>${n.author}</strong> <span class="muted">· ${formatDateTime(
+            `<li><strong>${escapeHtml(n.author)}</strong> <span class="muted">· ${formatDateTime(
               n.timestamp,
-            )}</span><br/>${n.body}</li>`,
+            )}</span><br/>${escapeHtml(n.body)}</li>`,
         )
         .join("")
     : "<li class='muted'>No notes.</li>";
 
   const html = `<!doctype html><html><head><meta charset="utf-8"/>
-  <title>${analysis.loanNumber} · Worksheet</title>
+  <title>${escapeHtml(analysis.loanNumber)} · Worksheet</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;800&family=JetBrains+Mono:wght@500&display=swap');
     * { box-sizing: border-box; }
@@ -112,18 +113,18 @@ export function openPrintableWorksheet(analysis: Analysis, reveal: boolean) {
   <body>
     <div class="head">
       <div>
-        <div class="brand">Ask<span>Bob</span>AI</div>
+        <div class="brand">AskBobAI</div>
         <div class="meta">${analysis.module === "income" ? "Income" : "Asset"} Analysis Worksheet</div>
       </div>
       <div style="text-align:right">
-        <h1 class="mono">${analysis.loanNumber}</h1>
-        <div class="meta">Borrower: ${reveal ? analysis.borrowerName : maskIdentifier("name", analysis.borrowerName)}</div>
-        <div class="meta">Status: ${analysis.status} · ${formatDateTime(analysis.updatedAt)}</div>
+        <h1 class="mono">${escapeHtml(analysis.loanNumber)}</h1>
+        <div class="meta">Borrower: ${escapeHtml(reveal ? analysis.borrowerName : maskIdentifier("name", analysis.borrowerName))}</div>
+        <div class="meta">Status: ${escapeHtml(analysis.status)} · ${formatDateTime(analysis.updatedAt)}</div>
       </div>
     </div>
 
     <div class="hero">
-      <div class="label">${resultLabel} · ${analysis.result?.methodLabel ?? "—"}</div>
+      <div class="label">${resultLabel} · ${escapeHtml(analysis.result?.methodLabel ?? "—")}</div>
       <div class="num">${analysis.result ? formatMoney(analysis.result.monthlyQualifying, { cents: true }) : "—"}</div>
     </div>
 

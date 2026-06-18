@@ -35,7 +35,7 @@ export function AnalysisList({ module }: { module: ModuleKind }) {
     <div className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="flex items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-navy text-white">
+          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-surface-dark text-white">
             <Icon className="h-5 w-5" />
           </span>
           <div>

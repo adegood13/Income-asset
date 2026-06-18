@@ -90,14 +90,14 @@ export function Reports() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 rounded-lg border border-ink-200 bg-white p-1">
+          <div className="flex items-center gap-1 rounded-lg border border-ink-200 bg-surface p-1">
             <Calendar className="ml-1.5 h-4 w-4 text-ink-400" />
             {DATE_RANGES.map((r) => (
               <button
                 key={r.id}
                 onClick={() => setRangeId(r.id)}
                 className={`rounded-md px-2.5 py-1.5 text-xs font-semibold transition ${
-                  r.id === rangeId ? "bg-navy text-white" : "text-ink-500 hover:bg-ink-100"
+                  r.id === rangeId ? "bg-brand text-white" : "text-ink-500 hover:bg-ink-100"
                 }`}
               >
                 {r.label}
