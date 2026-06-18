@@ -43,6 +43,9 @@ browser's **localStorage**, so it survives a refresh. To start over, go to
      a provenance hint, and an editable value. Edit a financial field and watch
      it flag as **overridden** (with a "was…" original and a reset). Add a
      per-field note. Identifier fields are masked until you toggle PII reveal.
+     **Each field's source citation is a link** — click it to open the source
+     document at that exact page with the field highlighted (fast low-confidence
+     review). Fields locked by the admin confidence policy grey out.
    - *Calculation* (right) — the qualifying figure, a **method dropdown** (switch
      it and the number + lineage change), the **step-by-step audit lineage**,
      Recalculate, and a **live agency/investor guideline selector** (all agencies
@@ -68,7 +71,10 @@ browser's **localStorage**, so it survives a refresh. To start over, go to
 5. **Reports** → mock charts (volume by status, confidence distribution,
    override rate over time, average turn time) with a date-range filter and CSV
    export.
-6. **Settings** → placeholder list of areas "configured by engineering".
+6. **Settings** → live **access control** (your role + permissions), an
+   append-only **audit trail**, and an **admin field-lock policy** (lock fields at
+   or above a confidence score, e.g. ≥ 97% — admin role required). The rest are
+   "configured by engineering" placeholders.
 
 ## The mock "seams" (engineering handoff)
 

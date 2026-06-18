@@ -1,4 +1,15 @@
-import { Calculator, Users, Building2, ShieldCheck, Lock, RotateCcw, Eye, History } from "lucide-react";
+import { useState } from "react";
+import {
+  Calculator,
+  Users,
+  Building2,
+  ShieldCheck,
+  Lock,
+  RotateCcw,
+  Eye,
+  History,
+  SlidersHorizontal,
+} from "lucide-react";
 import { useApp } from "../state/AppContext";
 import { useToast } from "../components/Toast";
 import { ROLES } from "../mock/roles";
@@ -37,10 +48,25 @@ const AREAS = [
 ];
 
 export function Settings() {
-  const { resetDemoData, role } = useApp();
+  const { resetDemoData, role, can, confidenceLockThreshold, setConfidenceLockThreshold } = useApp();
   const toast = useToast();
   const roleDef = ROLES[role];
   const auditLog = getAuditLog().slice(0, 8);
+
+  const canManage = can("settings:manage");
+  const lockEnabled = confidenceLockThreshold != null;
+  const [thresholdDraft, setThresholdDraft] = useState(confidenceLockThreshold ?? 97);
+
+  const toggleLock = () => {
+    if (!canManage) return;
+    setConfidenceLockThreshold(lockEnabled ? null : thresholdDraft);
+    toast(lockEnabled ? "Field-lock policy disabled" : `Fields ≥ ${thresholdDraft}% locked`, "info");
+  };
+  const changeThreshold = (n: number) => {
+    const v = Math.min(100, Math.max(50, Math.round(n)));
+    setThresholdDraft(v);
+    if (lockEnabled) setConfidenceLockThreshold(v);
+  };
 
   return (
     <div className="mx-auto max-w-[1000px] px-4 py-6 sm:px-6 lg:px-8">
@@ -112,6 +138,85 @@ export function Settings() {
             ))}
           </div>
         </div>
+      </div>
+
+      {/* Live (admin): field-lock policy */}
+      <div className="mt-4 card p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-ink-100 text-ink-500">
+              <SlidersHorizontal className="h-5 w-5" />
+            </span>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-bold text-navy">Field-lock policy</h3>
+                <span className="inline-flex items-center gap-1 rounded-full bg-ink-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-ink-500">
+                  {canManage ? "Admin" : "Admin only"}
+                </span>
+              </div>
+              <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-ink-500">
+                Lock captured fields from editing once their extraction confidence is at or above a
+                threshold — high-confidence values grey out and can't be changed. Applies across all
+                analyses.
+              </p>
+            </div>
+          </div>
+
+          {/* On/off switch */}
+          <button
+            onClick={toggleLock}
+            disabled={!canManage}
+            role="switch"
+            aria-checked={lockEnabled}
+            className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition disabled:opacity-50 disabled:cursor-not-allowed ${
+              lockEnabled ? "bg-green" : "bg-ink-300"
+            }`}
+            title={canManage ? "Toggle policy" : "Requires Administrator role"}
+          >
+            <span
+              className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${
+                lockEnabled ? "translate-x-5" : "translate-x-0.5"
+              }`}
+            />
+          </button>
+        </div>
+
+        <div className={`mt-4 flex flex-wrap items-center gap-4 ${lockEnabled ? "" : "opacity-50"}`}>
+          <label className="text-sm font-medium text-ink-700">Lock at confidence ≥</label>
+          <div className="flex items-center gap-3">
+            <input
+              type="range"
+              min={50}
+              max={100}
+              value={thresholdDraft}
+              disabled={!canManage || !lockEnabled}
+              onChange={(e) => changeThreshold(Number(e.target.value))}
+              className="h-2 w-48 cursor-pointer accent-green disabled:cursor-not-allowed"
+            />
+            <div className="flex items-center gap-1">
+              <input
+                type="number"
+                min={50}
+                max={100}
+                value={thresholdDraft}
+                disabled={!canManage || !lockEnabled}
+                onChange={(e) => changeThreshold(Number(e.target.value))}
+                className="input w-20 font-mono"
+              />
+              <span className="font-mono text-sm text-ink-500">%</span>
+            </div>
+          </div>
+        </div>
+        <p className="mt-3 text-xs text-ink-500">
+          {lockEnabled ? (
+            <>
+              Fields with confidence <span className="font-semibold text-navy">≥ {confidenceLockThreshold}%</span> are
+              read-only. Lower-confidence items stay editable for review.
+            </>
+          ) : (
+            "Policy off — all fields are editable (subject to role and finalized status)."
+          )}
+        </p>
       </div>
 
       {/* Configured by engineering */}

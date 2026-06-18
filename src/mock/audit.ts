@@ -16,7 +16,8 @@ export type AuditAction =
   | "pii.reveal"
   | "pii.mask"
   | "analysis.finalize"
-  | "role.switch";
+  | "role.switch"
+  | "policy.change";
 
 export interface AuditEvent {
   id: string;
@@ -54,4 +55,5 @@ export const AUDIT_ACTION_LABEL: Record<AuditAction, string> = {
   "pii.mask": "PII re-masked",
   "analysis.finalize": "Analysis finalized",
   "role.switch": "Role switched",
+  "policy.change": "Field-lock policy changed",
 };

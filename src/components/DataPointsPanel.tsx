@@ -3,6 +3,8 @@ import type { DocumentRecord } from "../types";
 import { FieldRow } from "./FieldRow";
 import { ConfidenceBadge } from "./ConfidenceBadge";
 import { DOC_TYPE_LABEL } from "../mock/extraction";
+import { openDocumentView } from "../mock/documentViewer";
+import { useApp } from "../state/AppContext";
 import { DocIcon } from "./DocIcon";
 
 interface Props {
@@ -33,6 +35,7 @@ function groupFields(doc: DocumentRecord) {
 }
 
 export function DataPointsPanel({ analysisId, doc, locked, onView, onPopOut }: Props) {
+  const { reveal } = useApp();
   const groups = groupFields(doc);
   const lowCount = doc.fields.filter((f) => f.confidence < 70).length;
 
@@ -102,6 +105,7 @@ export function DataPointsPanel({ analysisId, doc, locked, onView, onPopOut }: P
                   docId={doc.id}
                   field={field}
                   locked={locked}
+                  onLocate={(fid) => openDocumentView(doc, reveal, fid)}
                 />
               ))}
             </div>

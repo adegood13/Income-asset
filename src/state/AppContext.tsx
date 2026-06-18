@@ -28,6 +28,7 @@ export type ThemeMode = "light" | "dark" | "system";
 
 const ROLE_KEY = "askbob.role.v1";
 const THEME_KEY = "askbob.theme.v1";
+const FIELDLOCK_KEY = "askbob.fieldlock.v1";
 
 interface AppState {
   analyses: Analysis[];
@@ -42,6 +43,11 @@ interface AppState {
   // Theme.
   theme: ThemeMode;
   setTheme: (t: ThemeMode) => void;
+
+  // Admin policy: lock fields whose confidence is >= this score from editing.
+  // null = policy off. Changing it requires `settings:manage`.
+  confidenceLockThreshold: number | null;
+  setConfidenceLockThreshold: (threshold: number | null) => void;
 
   // PII reveal toggle. Default false => identifiers are masked everywhere.
   // Revealing requires the `pii:reveal` permission and is audit-logged.
@@ -80,6 +86,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<ThemeMode>(
     () => (localStorage.getItem(THEME_KEY) as ThemeMode) || "system",
   );
+  const [confidenceLockThreshold, setLockThresholdState] = useState<number | null>(() => {
+    const raw = localStorage.getItem(FIELDLOCK_KEY);
+    return raw === null || raw === "" ? null : Number(raw);
+  });
 
   // Persist on every change (SEAM 4 mock backend write).
   useEffect(() => {
@@ -130,6 +140,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setThemeState(t);
     localStorage.setItem(THEME_KEY, t);
   }, []);
+
+  const setConfidenceLockThreshold = useCallback(
+    (threshold: number | null) => {
+      setLockThresholdState(threshold);
+      localStorage.setItem(FIELDLOCK_KEY, threshold == null ? "" : String(threshold));
+      recordAudit({
+        action: "policy.change",
+        actor: MOCK_USER,
+        role,
+        detail:
+          threshold == null
+            ? "Field-lock policy disabled"
+            : `Fields locked at confidence ≥ ${threshold}%`,
+      });
+    },
+    [role],
+  );
 
   const touch = (a: Analysis): Analysis => ({ ...a, updatedAt: new Date().toISOString() });
 
@@ -307,6 +334,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       can,
       theme,
       setTheme,
+      confidenceLockThreshold,
+      setConfidenceLockThreshold,
       reveal: revealState,
       setReveal,
       getAnalysis,
@@ -329,6 +358,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       can,
       theme,
       setTheme,
+      confidenceLockThreshold,
+      setConfidenceLockThreshold,
       revealState,
       setReveal,
       getAnalysis,
