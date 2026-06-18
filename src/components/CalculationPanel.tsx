@@ -3,6 +3,7 @@ import type { Analysis } from "../types";
 import { Sparkle } from "./Logo";
 import { CalculationLineage } from "./CalculationLineage";
 import { getMethodsForModule, getMethod, GUIDELINE_GROUPS, getGuidelineLabel } from "../mock/rules";
+import { useApp } from "../state/AppContext";
 import { formatMoney } from "../lib/format";
 import { useCountUp } from "../lib/useCountUp";
 
@@ -29,7 +30,15 @@ export function CalculationPanel({
   lineagePopped,
   onReturnLineage,
 }: Props) {
-  const methods = getMethodsForModule(analysis.module, analysis.documents);
+  const { config } = useApp();
+  // Honor tenant rule config: hide methods/guidelines an admin has disabled.
+  const methods = getMethodsForModule(analysis.module, analysis.documents).filter(
+    (m) => !config.disabledMethods.includes(m.id),
+  );
+  const guidelineGroups = GUIDELINE_GROUPS.map((g) => ({
+    group: g.group,
+    options: g.options.filter((o) => !config.disabledGuidelines.includes(o.id)),
+  })).filter((g) => g.options.length > 0);
   const currentMethod = getMethod(analysis.method ?? "");
   const result = analysis.result;
   const resultLabel = analysis.module === "income" ? "Qualifying monthly income" : "Qualifying assets";
@@ -118,7 +127,7 @@ export function CalculationPanel({
               aria-label="Agency or investor guideline"
             >
               <option value="">No overlay — base method only</option>
-              {GUIDELINE_GROUPS.map((g) => (
+              {guidelineGroups.map((g) => (
                 <optgroup key={g.group} label={g.group}>
                   {g.options.map((o) => (
                     <option key={o.id} value={o.id}>
