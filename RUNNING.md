@@ -58,7 +58,13 @@ browser's **localStorage**, so it survives a refresh. To start over, go to
    - Header actions: **Save**, **Finalize** (locks the analysis), **Export**
      (printable worksheet or JSON), and an append-only **Notes** drawer.
 4. **PII mask toggle** (top bar) — flips identifier masking everywhere. Off by
-   default (identifiers masked).
+   default (identifiers masked). **Now role-gated**: only roles with the
+   `pii:reveal` permission can unmask. Switch roles from the avatar menu
+   (Underwriter / Processor / Auditor / Admin) and watch the toggle, editing, and
+   finalize gate accordingly. Privileged actions are written to an audit log
+   (Settings → Security).
+4b. **Dark mode** — theme toggle in the top bar cycles Light / Dark / System;
+   the choice persists and applies before first paint (no flash).
 5. **Reports** → mock charts (volume by status, confidence distribution,
    override rate over time, average turn time) with a date-range filter and CSV
    export.
@@ -77,6 +83,8 @@ replaces it with.
 | 3 | `src/mock/tokenization.ts` | PII masking for identifier fields + the global reveal toggle. | The real tokenization vault + detokenization service. |
 | 4 | `src/mock/store.ts` | `localStorage`-backed persistence for analyses and notes (seeded from `src/mock/seed.ts`). | The real backend, append-only audit store, and auth. |
 | 5 | `src/mock/documentViewer.ts` | "View source document" — renders a facsimile of the captured page in a new tab. | A link to the original stored PDF/image (signed URL) with field regions overlaid. |
+| 6 | `src/mock/roles.ts` | RBAC — roles → permissions (`pii:reveal`, `analysis:edit`, …). Gates UI only. | Real authn (SSO/OIDC) + **server-enforced** authorization. |
+| 7 | `src/mock/audit.ts` | Append-only audit log of privileged actions (PII reveal, finalize, role switch). | The tamper-evident, server-side audit store with retention. |
 
 ## Tech stack
 

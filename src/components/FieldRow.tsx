@@ -45,7 +45,7 @@ export function FieldRow({ analysisId, docId, field, locked }: Props) {
   return (
     <div
       className={`group rounded-lg border px-3 py-2.5 transition
-        ${field.overridden ? "border-[#F5A623]/40 bg-[#FFFBF2]" : "border-transparent hover:border-ink-200 hover:bg-ink-50"}`}
+        ${field.overridden ? "border-[#F5A623]/40 bg-[#FFFBF2] dark:bg-[#211D12]" : "border-transparent hover:border-ink-200 hover:bg-ink-50"}`}
     >
       <div className="flex items-start gap-3">
         {/* Label + provenance */}
@@ -53,7 +53,7 @@ export function FieldRow({ analysisId, docId, field, locked }: Props) {
           <div className="flex items-center gap-1.5">
             <span className="text-sm font-medium text-ink-700">{field.label}</span>
             {field.overridden && (
-              <span className="inline-flex items-center gap-1 rounded bg-[#FFF4E0] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#9A6300]">
+              <span className="inline-flex items-center gap-1 rounded bg-[#FFF4E0] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#9A6300] dark:bg-[#2A2412] dark:text-[#E7B264]">
                 <PenLine className="h-2.5 w-2.5" /> Overridden
               </span>
             )}
@@ -136,7 +136,7 @@ export function FieldRow({ analysisId, docId, field, locked }: Props) {
 
       {/* Per-field note editor */}
       {editingNote && (
-        <div className="mt-2 rounded-lg border border-ink-200 bg-white p-2.5 animate-fade-in">
+        <div className="mt-2 rounded-lg border border-ink-200 bg-surface p-2.5 animate-fade-in">
           <textarea
             className="input min-h-[60px] resize-y text-sm"
             placeholder="Add a note about this field…"

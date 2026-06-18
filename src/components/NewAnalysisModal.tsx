@@ -148,7 +148,7 @@ export function NewAnalysisModal({ open, onClose, defaultModule = "income" }: Pr
                     key={t}
                     onClick={() => setDocType(t)}
                     className={`flex items-center gap-2 rounded-lg border p-2.5 text-left transition
-                      ${docType === t ? "border-brand bg-brand-tint" : "border-ink-200 bg-white hover:border-ink-300"}`}
+                      ${docType === t ? "border-brand bg-brand-tint" : "border-ink-200 bg-surface hover:border-ink-300"}`}
                   >
                     <DocIcon type={t} className={`h-4 w-4 shrink-0 ${docType === t ? "text-brand" : "text-ink-500"}`} />
                     <span className="text-xs font-medium leading-tight text-ink-700">{DOC_TYPE_LABEL[t]}</span>
@@ -183,7 +183,7 @@ function ModuleCard({
     <button
       onClick={onClick}
       className={`flex items-start gap-3 rounded-xl border p-3.5 text-left transition
-        ${active ? "border-brand bg-brand-tint shadow-card" : "border-ink-200 bg-white hover:border-ink-300"}`}
+        ${active ? "border-brand bg-brand-tint shadow-card" : "border-ink-200 bg-surface hover:border-ink-300"}`}
     >
       <span className={`flex h-10 w-10 items-center justify-center rounded-lg ${active ? "bg-brand-gradient text-white" : "bg-ink-100 text-ink-500"}`}>
         {icon}

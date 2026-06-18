@@ -102,7 +102,7 @@ function StatCard({
 }) {
   const accents = {
     brand: "bg-brand-tint text-brand",
-    amber: "bg-[#FFF4E0] text-[#9A6300]",
+    amber: "bg-[#FFF4E0] text-[#9A6300] dark:bg-[#2A2412] dark:text-[#E7B264]",
     green: "bg-green-tint text-green-deep",
   };
   return (

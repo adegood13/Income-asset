@@ -81,7 +81,7 @@ export function AddDocumentModal({ open, onClose, analysisId, module }: Props) {
                 key={t}
                 onClick={() => setDocType(t)}
                 className={`flex items-center gap-2 rounded-lg border p-2.5 text-left transition
-                  ${docType === t ? "border-brand bg-brand-tint" : "border-ink-200 bg-white hover:border-ink-300"}`}
+                  ${docType === t ? "border-brand bg-brand-tint" : "border-ink-200 bg-surface hover:border-ink-300"}`}
               >
                 <DocIcon type={t} className={`h-4 w-4 shrink-0 ${docType === t ? "text-brand" : "text-ink-500"}`} />
                 <span className="text-xs font-medium leading-tight text-ink-700">{DOC_TYPE_LABEL[t]}</span>

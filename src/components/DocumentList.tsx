@@ -38,11 +38,11 @@ export function DocumentList({ documents, selectedId, onSelect, onAdd, onView, o
               <button
                 onClick={() => onSelect(d.id)}
                 className={`flex w-full items-start gap-3 rounded-xl border p-3 pr-9 text-left transition
-                  ${active ? "border-brand bg-brand-tint shadow-card" : "border-ink-200 bg-white hover:border-ink-300 hover:bg-ink-50"}`}
+                  ${active ? "border-brand bg-brand-tint shadow-card" : "border-ink-200 bg-surface hover:border-ink-300 hover:bg-ink-50"}`}
               >
                 <span
                   className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
-                    active ? "bg-white text-brand" : "bg-ink-100 text-ink-500"
+                    active ? "bg-surface text-brand" : "bg-ink-100 text-ink-500"
                   }`}
                 >
                   <DocIcon type={d.docType} className="h-[18px] w-[18px]" />
@@ -61,7 +61,7 @@ export function DocumentList({ documents, selectedId, onSelect, onAdd, onView, o
               {/* View the source document used for the calculation */}
               <button
                 onClick={() => onView(d.id)}
-                className="absolute right-2 top-2 rounded-md p-1.5 text-ink-400 transition hover:bg-white hover:text-brand"
+                className="absolute right-2 top-2 rounded-md p-1.5 text-ink-400 transition hover:bg-surface hover:text-brand"
                 title="View source document"
                 aria-label={`View source document for ${DOC_TYPE_LABEL[d.docType]}`}
               >

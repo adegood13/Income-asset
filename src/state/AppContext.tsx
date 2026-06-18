@@ -21,12 +21,30 @@ import type {
 import { loadAnalyses, saveAnalyses, resetToSeed, MOCK_USER } from "../mock/store";
 import { defaultMethodFor, runCalculation } from "../mock/rules";
 import { uid, generateLoanNumber } from "../lib/id";
+import { type Permission, type Role, roleHas } from "../mock/roles";
+import { recordAudit } from "../mock/audit";
+
+export type ThemeMode = "light" | "dark" | "system";
+
+const ROLE_KEY = "askbob.role.v1";
+const THEME_KEY = "askbob.theme.v1";
 
 interface AppState {
   analyses: Analysis[];
   user: string;
   tenantId: string;
+
+  // RBAC (SEAM 6). `can()` gates privileged UI; production enforces server-side.
+  role: Role;
+  setRole: (role: Role) => void;
+  can: (permission: Permission) => boolean;
+
+  // Theme.
+  theme: ThemeMode;
+  setTheme: (t: ThemeMode) => void;
+
   // PII reveal toggle. Default false => identifiers are masked everywhere.
+  // Revealing requires the `pii:reveal` permission and is audit-logged.
   reveal: boolean;
   setReveal: (v: boolean) => void;
 
@@ -55,12 +73,63 @@ const GENERATED_LOAN = generateLoanNumber; // re-export convenience
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [analyses, setAnalyses] = useState<Analysis[]>(() => loadAnalyses());
-  const [reveal, setReveal] = useState(false);
+  const [revealState, setRevealState] = useState(false);
+  const [role, setRoleState] = useState<Role>(
+    () => (localStorage.getItem(ROLE_KEY) as Role) || "underwriter",
+  );
+  const [theme, setThemeState] = useState<ThemeMode>(
+    () => (localStorage.getItem(THEME_KEY) as ThemeMode) || "system",
+  );
 
   // Persist on every change (SEAM 4 mock backend write).
   useEffect(() => {
     saveAnalyses(analyses);
   }, [analyses]);
+
+  // Apply the theme to <html> (class strategy), tracking the system preference.
+  useEffect(() => {
+    const mql = window.matchMedia("(prefers-color-scheme: dark)");
+    const apply = () => {
+      const dark = theme === "dark" || (theme === "system" && mql.matches);
+      document.documentElement.classList.toggle("dark", dark);
+    };
+    apply();
+    mql.addEventListener("change", apply);
+    return () => mql.removeEventListener("change", apply);
+  }, [theme]);
+
+  const can = useCallback((permission: Permission) => roleHas(role, permission), [role]);
+
+  // Privileged: revealing PII requires permission and is audit-logged.
+  const setReveal = useCallback(
+    (v: boolean) => {
+      if (v && !roleHas(role, "pii:reveal")) return; // denied — no permission
+      setRevealState(v);
+      recordAudit({
+        action: v ? "pii.reveal" : "pii.mask",
+        actor: MOCK_USER,
+        role,
+        detail: v ? "Identifiers unmasked across workspace" : "Identifiers re-masked",
+      });
+    },
+    [role],
+  );
+
+  // Switching to a role without pii:reveal immediately re-masks.
+  const setRole = useCallback(
+    (next: Role) => {
+      setRoleState(next);
+      localStorage.setItem(ROLE_KEY, next);
+      recordAudit({ action: "role.switch", actor: MOCK_USER, role: next, detail: `Acting as ${next}` });
+      if (!roleHas(next, "pii:reveal")) setRevealState(false);
+    },
+    [],
+  );
+
+  const setTheme = useCallback((t: ThemeMode) => {
+    setThemeState(t);
+    localStorage.setItem(THEME_KEY, t);
+  }, []);
 
   const touch = (a: Analysis): Analysis => ({ ...a, updatedAt: new Date().toISOString() });
 
@@ -188,19 +257,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
     );
   }, []);
 
-  const finalize = useCallback((analysisId: string) => {
-    setAnalyses((prev) =>
-      prev.map((a) => {
-        if (a.id !== analysisId) return a;
-        const method = a.method ?? defaultMethodFor(a.module, a.documents);
-        return touch({
-          ...a,
-          status: "finalized",
-          result: a.result ?? runCalculation(a.documents, method),
-        });
-      }),
-    );
-  }, []);
+  const finalize = useCallback(
+    (analysisId: string) => {
+      setAnalyses((prev) =>
+        prev.map((a) => {
+          if (a.id !== analysisId) return a;
+          const method = a.method ?? defaultMethodFor(a.module, a.documents);
+          recordAudit({
+            action: "analysis.finalize",
+            actor: MOCK_USER,
+            role,
+            detail: `Finalized ${a.loanNumber}`,
+          });
+          return touch({
+            ...a,
+            status: "finalized",
+            result: a.result ?? runCalculation(a.documents, method),
+          });
+        }),
+      );
+    },
+    [role],
+  );
 
   const addNote = useCallback((analysisId: string, body: string) => {
     const note: Note = {
@@ -216,7 +294,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const resetDemoData = useCallback(() => {
     setAnalyses(resetToSeed());
-    setReveal(false);
+    setRevealState(false);
   }, []);
 
   const value = useMemo<AppState>(
@@ -224,7 +302,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       analyses,
       user: MOCK_USER,
       tenantId: "4821",
-      reveal,
+      role,
+      setRole,
+      can,
+      theme,
+      setTheme,
+      reveal: revealState,
       setReveal,
       getAnalysis,
       createAnalysis,
@@ -241,7 +324,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }),
     [
       analyses,
-      reveal,
+      role,
+      setRole,
+      can,
+      theme,
+      setTheme,
+      revealState,
+      setReveal,
       getAnalysis,
       createAnalysis,
       addDocument,

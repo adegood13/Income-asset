@@ -41,7 +41,7 @@ export function DataPointsPanel({ analysisId, doc, locked, onView, onPopOut }: P
       {/* Document header */}
       <div className="flex items-start justify-between gap-3 border-b border-ink-200 px-1 pb-3">
         <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-navy text-white">
+          <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-surface-dark text-white">
             <DocIcon type={doc.docType} className="h-5 w-5" />
           </span>
           <div>
@@ -91,7 +91,7 @@ export function DataPointsPanel({ analysisId, doc, locked, onView, onPopOut }: P
       <div className="mt-2 min-h-0 flex-1 space-y-5 overflow-y-auto pr-1 scroll-thin">
         {groups.map(([group, fields]) => (
           <div key={group}>
-            <div className="sticky top-0 z-[1] bg-white/95 py-1.5 backdrop-blur">
+            <div className="sticky top-0 z-[1] bg-surface/95 py-1.5 backdrop-blur">
               <span className="eyebrow">{group}</span>
             </div>
             <div className="space-y-1">

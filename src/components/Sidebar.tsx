@@ -36,7 +36,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   };
 
   return (
-    <div className="flex h-full w-64 flex-col bg-navy text-ink-300">
+    <div className="flex h-full w-64 flex-col bg-surface-dark text-ink-300">
       {/* Brand anchor */}
       <button
         onClick={() => go("/")}

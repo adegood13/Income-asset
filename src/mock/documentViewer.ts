@@ -17,6 +17,7 @@ import { DOC_TYPE_LABEL } from "./extraction";
 import { maskIdentifier } from "./tokenization";
 import { asNumber, formatMoney, formatDateTime } from "../lib/format";
 import { tierFor, CONFIDENCE_HEX } from "../lib/confidence";
+import { escapeHtml } from "../lib/html";
 
 function fieldDisplay(label: string, value: string | number, type: string, reveal: boolean): string {
   if (type === "identifier" && !reveal) return maskIdentifier(label, String(value));
@@ -46,15 +47,15 @@ export function openDocumentView(doc: DocumentRecord, reveal: boolean) {
         .map((field) => {
           const hex = CONFIDENCE_HEX[tierFor(field.confidence)];
           return `<tr>
-            <td class="lbl">${field.label}</td>
-            <td class="val mono">${fieldDisplay(field.label, field.value, field.type, reveal)}</td>
+            <td class="lbl">${escapeHtml(field.label)}</td>
+            <td class="val mono">${escapeHtml(fieldDisplay(field.label, field.value, field.type, reveal))}</td>
             <td class="conf mono" style="color:${hex}">${field.confidence}</td>
-            <td class="prov">${field.provenance}</td>
+            <td class="prov">${escapeHtml(field.provenance)}</td>
           </tr>`;
         })
         .join("");
       return `<section>
-        <h2>${group}</h2>
+        <h2>${escapeHtml(group)}</h2>
         <table>
           <thead><tr><th>Field</th><th>Captured value</th><th>Conf.</th><th>Region / source</th></tr></thead>
           <tbody>${rows}</tbody>
@@ -64,7 +65,7 @@ export function openDocumentView(doc: DocumentRecord, reveal: boolean) {
     .join("");
 
   const html = `<!doctype html><html><head><meta charset="utf-8"/>
-  <title>${DOC_TYPE_LABEL[doc.docType]} · source document</title>
+  <title>${escapeHtml(DOC_TYPE_LABEL[doc.docType])} · source document</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700;800&family=JetBrains+Mono:wght@500&display=swap');
     * { box-sizing: border-box; }
@@ -99,8 +100,8 @@ export function openDocumentView(doc: DocumentRecord, reveal: boolean) {
     <div class="sheet">
       <div class="sheet-head">
         <div class="kicker">Source document · used for this calculation</div>
-        <h1>${DOC_TYPE_LABEL[doc.docType]}</h1>
-        <div class="period">${doc.periodLabel}</div>
+        <h1>${escapeHtml(DOC_TYPE_LABEL[doc.docType])}</h1>
+        <div class="period">${escapeHtml(doc.periodLabel)}</div>
         <span class="docchip">Overall confidence <strong class="mono" style="color:#fff">${overall}</strong>
           <span style="width:8px;height:8px;border-radius:99px;background:${overallHex};display:inline-block"></span>
         </span>

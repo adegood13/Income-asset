@@ -3,8 +3,45 @@
 @tailwind utilities;
 
 @layer base {
+  /* Themeable palette as RGB channels. Light defaults; .dark overrides. */
   :root {
     color-scheme: light;
+    --c-bg: 255 255 255;
+    --c-surface: 255 255 255;
+    --c-navy: 21 25 34; /* headings: near-black in light */
+    --c-brand-tint: 237 247 255;
+    --c-green-tint: 242 250 245;
+    --c-danger-tint: 255 243 242;
+    --c-ink-50: 250 251 252;
+    --c-ink-100: 242 244 247;
+    --c-ink-200: 230 232 236;
+    --c-ink-300: 213 216 222;
+    --c-ink-400: 181 184 191;
+    --c-ink-500: 138 141 148;
+    --c-ink-600: 106 106 106;
+    --c-ink-700: 58 61 68;
+    --c-ink-800: 31 35 43;
+    --c-ink-900: 10 10 10;
+  }
+
+  .dark {
+    color-scheme: dark;
+    --c-bg: 13 16 21; /* page #0D1015 */
+    --c-surface: 24 27 33; /* cards #181B21 */
+    --c-navy: 236 238 242; /* headings: near-white in dark */
+    --c-brand-tint: 18 33 51;
+    --c-green-tint: 16 38 28;
+    --c-danger-tint: 51 26 26;
+    --c-ink-50: 32 36 44; /* elevated panels / hover (lighter than card) */
+    --c-ink-100: 40 45 54;
+    --c-ink-200: 52 58 68; /* borders */
+    --c-ink-300: 70 77 89;
+    --c-ink-400: 124 131 143;
+    --c-ink-500: 150 157 169;
+    --c-ink-600: 180 186 197;
+    --c-ink-700: 205 210 219;
+    --c-ink-800: 226 229 235;
+    --c-ink-900: 240 242 246; /* primary text */
   }
 
   html,
@@ -14,7 +51,7 @@
   }
 
   body {
-    @apply bg-white text-ink-900 font-sans antialiased;
+    @apply bg-page text-ink-900 font-sans antialiased;
   }
 
   h1,
@@ -22,8 +59,7 @@
   h3,
   h4,
   h5 {
-    @apply font-display;
-    color: #0a0a0a;
+    @apply font-display text-navy;
     letter-spacing: -0.02em;
   }
 
@@ -34,17 +70,19 @@
   }
 
   :focus-visible {
-    @apply outline-none ring-2 ring-brand ring-offset-2 ring-offset-white;
+    @apply outline-none ring-2 ring-brand ring-offset-2;
+    --tw-ring-offset-color: rgb(var(--c-bg));
   }
 
   ::selection {
-    background: #cfe8ff;
+    background: #1281de;
+    color: #fff;
   }
 }
 
 @layer components {
   .card {
-    @apply rounded-2xl border border-ink-200 bg-white shadow-card;
+    @apply rounded-2xl border border-ink-200 bg-surface shadow-card;
   }
 
   /* AskBob Green marks the moment of action — primary CTAs only. */
@@ -54,9 +92,9 @@
       hover:brightness-[1.03] active:brightness-95 disabled:opacity-50 disabled:shadow-none;
   }
 
-  /* Secondary / neutral actions — white pill with a hairline. */
+  /* Secondary / neutral actions — surface pill with a hairline. */
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full border border-ink-300 bg-white
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-ink-300 bg-surface
       px-5 py-2.5 text-sm font-semibold text-ink-800 transition
       hover:bg-ink-50 hover:border-ink-400 active:bg-ink-100 disabled:opacity-50;
   }
@@ -74,7 +112,7 @@
   }
 
   .input {
-    @apply w-full rounded-xl border border-ink-300 bg-white px-3 py-2 text-sm text-ink-900
+    @apply w-full rounded-xl border border-ink-300 bg-surface px-3 py-2 text-sm text-ink-900
       transition placeholder:text-ink-400
       focus:border-brand focus:ring-2 focus:ring-brand/25 focus:outline-none;
   }
@@ -92,14 +130,14 @@
 
   .scroll-thin {
     scrollbar-width: thin;
-    scrollbar-color: #d5d8de transparent;
+    scrollbar-color: rgb(var(--c-ink-300)) transparent;
   }
   .scroll-thin::-webkit-scrollbar {
     width: 8px;
     height: 8px;
   }
   .scroll-thin::-webkit-scrollbar-thumb {
-    background: #d5d8de;
+    background: rgb(var(--c-ink-300));
     border-radius: 9999px;
   }
 }

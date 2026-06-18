@@ -3,7 +3,7 @@ import type { AnalysisStatus } from "../types";
 const MAP: Record<AnalysisStatus, { label: string; cls: string; dot: string }> = {
   draft: { label: "Draft", cls: "bg-ink-100 text-ink-600 border-ink-200", dot: "#B5B8BF" },
   in_review: { label: "In Review", cls: "bg-brand-tint text-brand border-brand/25", dot: "#1281DE" },
-  calculated: { label: "Calculated", cls: "bg-[#FFF6E5] text-[#9A6300] border-[#F5A623]/30", dot: "#F5A623" },
+  calculated: { label: "Calculated", cls: "bg-[#FFF6E5] text-[#9A6300] border-[#F5A623]/30 dark:bg-[#2A2412] dark:text-[#E7B264]", dot: "#F5A623" },
   finalized: { label: "Finalized", cls: "bg-green-tint text-green-deep border-green/30", dot: "#19D467" },
 };
 

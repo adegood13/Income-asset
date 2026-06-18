@@ -25,8 +25,8 @@ export function NotesDrawer({ analysis, open, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50">
-      <div className="absolute inset-0 bg-navy/40 backdrop-blur-sm animate-fade-in" onClick={onClose} />
-      <div className="absolute inset-y-0 right-0 flex w-full max-w-md animate-slide-in flex-col bg-white shadow-float">
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={onClose} />
+      <div className="absolute inset-y-0 right-0 flex w-full max-w-md animate-slide-in flex-col bg-surface shadow-float">
         <div className="flex items-center justify-between border-b border-ink-200 px-5 py-4">
           <div>
             <h2 className="text-base font-bold text-navy">Analysis notes</h2>
