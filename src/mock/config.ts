@@ -8,9 +8,23 @@
  * ========================================================================== */
 
 import type { Role } from "./roles";
+import type { ModuleKind } from "../types";
 
 export type MaskStyle = "last4" | "full";
 export type DataRegion = "us-east" | "us-west" | "eu" | "ca";
+
+// Admin-defined calculation methods (parameterized templates the rules engine
+// can execute). See CUSTOM_METHOD_KINDS in rules.ts.
+export type CustomMethodKind = "bank_income_factor" | "asset_balance_factor" | "asset_haircut";
+
+export interface CustomMethod {
+  id: string;
+  label: string;
+  module: ModuleKind;
+  kind: CustomMethodKind;
+  factorPct: number; // 0–100, meaning depends on kind
+  enabled: boolean;
+}
 
 export interface MockUser {
   id: string;
@@ -39,8 +53,10 @@ export interface AppConfig {
   org: OrgConfig;
   security: SecurityConfig;
   users: MockUser[];
-  disabledMethods: string[]; // calculation method ids turned off for this tenant
+  disabledMethods: string[]; // built-in calculation method ids turned off
   disabledGuidelines: string[]; // guideline overlay ids turned off
+  customMethods: CustomMethod[]; // admin-defined methods
+  methodOverrides: Record<string, string>; // method id -> renamed label
 }
 
 export const DATA_REGIONS: { id: DataRegion; label: string }[] = [
@@ -73,6 +89,17 @@ export const DEFAULT_CONFIG: AppConfig = {
   ],
   disabledMethods: [],
   disabledGuidelines: [],
+  customMethods: [
+    {
+      id: "cm_biz35",
+      label: "Bank Statements — Business (35% expense)",
+      module: "income",
+      kind: "bank_income_factor",
+      factorPct: 35,
+      enabled: true,
+    },
+  ],
+  methodOverrides: {},
 };
 
 const KEY = "askbob.config.v1";
@@ -89,6 +116,8 @@ export function loadConfig(): AppConfig {
       users: parsed.users ?? DEFAULT_CONFIG.users,
       disabledMethods: parsed.disabledMethods ?? [],
       disabledGuidelines: parsed.disabledGuidelines ?? [],
+      customMethods: parsed.customMethods ?? DEFAULT_CONFIG.customMethods,
+      methodOverrides: parsed.methodOverrides ?? {},
     };
   } catch {
     return DEFAULT_CONFIG;

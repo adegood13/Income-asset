@@ -19,7 +19,7 @@ import type {
   Note,
 } from "../types";
 import { loadAnalyses, saveAnalyses, resetToSeed, MOCK_USER } from "../mock/store";
-import { defaultMethodFor, runCalculation } from "../mock/rules";
+import { defaultMethodFor, runCalculation, configureCustomMethods } from "../mock/rules";
 import { uid, generateLoanNumber } from "../lib/id";
 import { type Permission, type Role, roleHas } from "../mock/roles";
 import { recordAudit } from "../mock/audit";
@@ -90,7 +90,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [analyses, setAnalyses] = useState<Analysis[]>(() => loadAnalyses());
   const [revealState, setRevealState] = useState(false);
   const [role, setRoleState] = useState<Role>(
-    () => (localStorage.getItem(ROLE_KEY) as Role) || "underwriter",
+    () => (localStorage.getItem(ROLE_KEY) as Role) || "admin",
   );
   const [theme, setThemeState] = useState<ThemeMode>(
     () => (localStorage.getItem(THEME_KEY) as ThemeMode) || "system",
@@ -110,6 +110,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     saveConfig(config);
   }, [config]);
+
+  // Register admin-defined custom methods + label renames into the rules engine.
+  useEffect(() => {
+    configureCustomMethods(config.customMethods, config.methodOverrides);
+  }, [config.customMethods, config.methodOverrides]);
 
   // Apply the theme to <html> (class strategy), tracking the system preference.
   useEffect(() => {
