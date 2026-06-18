@@ -387,6 +387,49 @@ export function defaultMethodFor(module: ModuleKind, docs: DocumentRecord[]): st
   return avgBalance.id;
 }
 
+/* ------------------------------ guidelines -------------------------------- */
+// Agency + investor guideline overlays. The selector is LIVE (you can pick one)
+// but the overlay math is not yet wired — production layers these rule sets on
+// top of the base method (DTI caps, add-back eligibility, reserve requirements,
+// doc-type allowances, etc.) inside the versioned, per-tenant rules engine.
+
+export interface GuidelineOption {
+  id: string;
+  label: string;
+}
+
+export const GUIDELINE_GROUPS: { group: string; options: GuidelineOption[] }[] = [
+  {
+    group: "Agency",
+    options: [
+      { id: "fnma", label: "Fannie Mae — Conventional" },
+      { id: "fhlmc", label: "Freddie Mac — Conventional" },
+      { id: "fha", label: "FHA" },
+      { id: "va", label: "VA" },
+      { id: "usda", label: "USDA Rural" },
+    ],
+  },
+  {
+    group: "Non-QM investors",
+    options: [
+      { id: "angeloak", label: "Angel Oak Mortgage Solutions" },
+      { id: "deephaven", label: "Deephaven Mortgage" },
+      { id: "verus", label: "Verus Mortgage Capital" },
+      { id: "acra", label: "Acra Lending" },
+      { id: "carrington", label: "Carrington Mortgage Services" },
+    ],
+  },
+];
+
+export function getGuidelineLabel(id?: string): string | undefined {
+  if (!id) return undefined;
+  for (const g of GUIDELINE_GROUPS) {
+    const hit = g.options.find((o) => o.id === id);
+    if (hit) return hit.label;
+  }
+  return undefined;
+}
+
 /**
  * MOCK calculation entry point. Production swaps this for the real rules engine
  * call (versioned + per-tenant). The returned `steps[]` are the audit lineage.

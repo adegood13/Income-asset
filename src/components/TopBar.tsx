@@ -33,7 +33,7 @@ export function TopBar({ onOpenMenu }: Props) {
       <button
         onClick={() => setReveal(!reveal)}
         className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-semibold transition
-          ${reveal ? "border-conf-low/40 bg-[#FDECEC] text-[#B42B30]" : "border-ink-300 bg-white text-ink-600 hover:bg-ink-50"}`}
+          ${reveal ? "border-danger/40 bg-danger-tint text-danger" : "border-ink-300 bg-white text-ink-600 hover:bg-ink-50"}`}
         title={reveal ? "PII is revealed — click to mask" : "PII is masked — click to reveal"}
         aria-pressed={reveal}
       >
@@ -46,7 +46,7 @@ export function TopBar({ onOpenMenu }: Props) {
           <div className="text-sm font-semibold leading-tight text-navy">{user}</div>
           <div className="text-xs text-ink-400">Senior Underwriter</div>
         </div>
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-gradient text-xs font-bold text-white shadow-brand">
+        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-gradient text-xs font-bold text-white shadow-lift">
           {initials}
         </div>
       </div>

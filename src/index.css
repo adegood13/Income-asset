@@ -14,8 +14,7 @@
   }
 
   body {
-    @apply bg-ink-50 text-ink-800 font-sans antialiased;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    @apply bg-white text-ink-900 font-sans antialiased;
   }
 
   h1,
@@ -23,14 +22,15 @@
   h3,
   h4,
   h5 {
-    @apply font-display text-navy;
-    letter-spacing: -0.01em;
+    @apply font-display;
+    color: #0a0a0a;
+    letter-spacing: -0.02em;
   }
 
   /* Tabular, ledger-like numerals everywhere money/codes appear. */
   .font-mono {
     font-variant-numeric: tabular-nums;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
   }
 
   :focus-visible {
@@ -44,47 +44,62 @@
 
 @layer components {
   .card {
-    @apply rounded-xl border border-ink-200 bg-white shadow-card;
+    @apply rounded-2xl border border-ink-200 bg-white shadow-card;
   }
 
-  /* The single place the brand gradient is allowed: primary actions. */
+  /* AskBob Green marks the moment of action — primary CTAs only. */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-brand-gradient px-4 py-2.5
-      text-sm font-semibold text-white shadow-brand transition
-      hover:brightness-[1.04] active:brightness-95 disabled:opacity-50 disabled:shadow-none;
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-cta-gradient px-5 py-2.5
+      text-sm font-bold text-navy-900 shadow-cta transition
+      hover:brightness-[1.03] active:brightness-95 disabled:opacity-50 disabled:shadow-none;
   }
 
+  /* Secondary / neutral actions — white pill with a hairline. */
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-ink-300 bg-white
-      px-4 py-2.5 text-sm font-semibold text-ink-700 transition
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-ink-300 bg-white
+      px-5 py-2.5 text-sm font-semibold text-ink-800 transition
       hover:bg-ink-50 hover:border-ink-400 active:bg-ink-100 disabled:opacity-50;
   }
 
+  /* Blue action — used where blue (the mood) is the right emphasis, not green. */
+  .btn-blue {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-brand px-5 py-2.5
+      text-sm font-bold text-white shadow-lift transition
+      hover:bg-[#0F73C6] active:brightness-95 disabled:opacity-50 disabled:shadow-none;
+  }
+
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-3 py-2 text-sm font-medium
       text-ink-600 transition hover:bg-ink-100 hover:text-ink-900;
   }
 
   .input {
-    @apply w-full rounded-lg border border-ink-300 bg-white px-3 py-2 text-sm text-ink-900
+    @apply w-full rounded-xl border border-ink-300 bg-white px-3 py-2 text-sm text-ink-900
       transition placeholder:text-ink-400
       focus:border-brand focus:ring-2 focus:ring-brand/25 focus:outline-none;
   }
 
+  /* Caption style from the guide: Figtree 700 · 11 · 0.18em. */
   .eyebrow {
-    @apply text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-400;
+    @apply font-display text-[11px] font-bold uppercase tracking-[0.18em] text-ink-400;
+  }
+
+  /* Single-word editorial accent: Instrument Serif italic. */
+  .serif-accent {
+    @apply font-serif italic;
+    letter-spacing: 0;
   }
 
   .scroll-thin {
     scrollbar-width: thin;
-    scrollbar-color: #cbd5df transparent;
+    scrollbar-color: #d5d8de transparent;
   }
   .scroll-thin::-webkit-scrollbar {
     width: 8px;
     height: 8px;
   }
   .scroll-thin::-webkit-scrollbar-thumb {
-    background: #cbd5df;
+    background: #d5d8de;
     border-radius: 9999px;
   }
 }

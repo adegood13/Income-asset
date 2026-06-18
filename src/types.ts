@@ -73,6 +73,7 @@ export interface Analysis {
   documents: DocumentRecord[];
   result?: CalculationResult;
   method?: string; // currently selected calculation method id
+  guideline?: string; // selected agency/investor guideline overlay (preview only)
   notes: Note[];
   createdAt: string;
   updatedAt: string;

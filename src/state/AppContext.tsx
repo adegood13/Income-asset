@@ -41,6 +41,7 @@ interface AppState {
   ) => void;
   resetField: (analysisId: string, docId: string, fieldId: string) => void;
   setMethod: (analysisId: string, methodId: string) => void;
+  setGuideline: (analysisId: string, guidelineId: string) => void;
   recalc: (analysisId: string) => void;
   setStatus: (analysisId: string, status: AnalysisStatus) => void;
   finalize: (analysisId: string) => void;
@@ -164,6 +165,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     );
   }, []);
 
+  const setGuideline = useCallback((analysisId: string, guidelineId: string) => {
+    setAnalyses((prev) =>
+      prev.map((a) => (a.id !== analysisId ? a : touch({ ...a, guideline: guidelineId || undefined }))),
+    );
+  }, []);
+
   const recalc = useCallback((analysisId: string) => {
     setAnalyses((prev) =>
       prev.map((a) => {
@@ -225,6 +232,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       updateField,
       resetField,
       setMethod,
+      setGuideline,
       recalc,
       setStatus,
       finalize,
@@ -240,6 +248,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       updateField,
       resetField,
       setMethod,
+      setGuideline,
       recalc,
       setStatus,
       finalize,
