@@ -106,6 +106,21 @@ function bankStatementIncomeSeed(): Analysis {
 export function buildSeedAnalyses(): Analysis[] {
   return [
     bankStatementIncomeSeed(),
+
+    // --- DSCR: investment property (rent ÷ PITIA) ------------------------- //
+    build({
+      loanNumber: "LN-2026-00510",
+      module: "dscr",
+      borrowerName: "Coastal Holdings LLC",
+      status: "calculated",
+      docTypes: ["LeaseAgreement", "RentSchedule", "OperatingStatement"],
+      daysAgo: 1,
+      createdOffset: 2,
+      methodId: "dscr_lease",
+      notes: [
+        mkNote(1, "Lease rent $2,850 vs PITIA $2,190 → DSCR 1.30, above the 1.00 floor. 1007 market rent corroborates."),
+      ],
+    }),
     // --- INCOME: clean salaried, high confidence -------------------------- //
     build({
       loanNumber: "LN-2026-00471",

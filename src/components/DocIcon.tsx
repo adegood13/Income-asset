@@ -6,6 +6,9 @@ import {
   LineChart,
   FileBadge,
   Building2,
+  FileSignature,
+  ClipboardList,
+  Calculator,
   type LucideIcon,
 } from "lucide-react";
 import type { DocType } from "../types";
@@ -20,6 +23,9 @@ const ICONS: Record<DocType, LucideIcon> = {
   "1120S": Building2,
   BankStatement: Landmark,
   InvestmentStatement: LineChart,
+  LeaseAgreement: FileSignature,
+  RentSchedule: ClipboardList,
+  OperatingStatement: Calculator,
 };
 
 export function DocIcon({ type, className }: { type: DocType; className?: string }) {

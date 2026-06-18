@@ -9,8 +9,6 @@ import {
   Printer,
   ChevronDown,
   ShieldAlert,
-  Banknote,
-  PiggyBank,
   ExternalLink,
   Undo2,
 } from "lucide-react";
@@ -32,6 +30,7 @@ import { downloadAnalysisJSON, openPrintableWorksheet } from "../lib/export";
 import { openDocumentView } from "../mock/documentViewer";
 import { ConfidenceDot } from "../components/ConfidenceBadge";
 import { useMediaQuery } from "../lib/useMediaQuery";
+import { MODULE_LABEL, MODULE_ICON } from "../lib/modules";
 
 const COLS_KEY = "askbob.cols.v1";
 const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n));
@@ -196,21 +195,20 @@ export function AnalysisWorkspace({ id }: { id: string }) {
       {/* Workspace header */}
       <div className="shrink-0 pb-4">
         <button
-          onClick={() => navigate(analysis.module === "income" ? "/income" : "/asset")}
+          onClick={() => navigate(`/${analysis.module}`)}
           className="mb-3 inline-flex items-center gap-1.5 text-sm font-medium text-ink-500 hover:text-ink-800"
         >
           <ArrowLeft className="h-4 w-4" />
-          {analysis.module === "income" ? "Income Analysis" : "Asset Analysis"}
+          {MODULE_LABEL[analysis.module]} Analysis
         </button>
 
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-center gap-4">
             <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-surface-dark text-white">
-              {analysis.module === "income" ? (
-                <Banknote className="h-6 w-6" />
-              ) : (
-                <PiggyBank className="h-6 w-6" />
-              )}
+              {(() => {
+                const Icon = MODULE_ICON[analysis.module];
+                return <Icon className="h-6 w-6" />;
+              })()}
             </span>
             <div>
               <div className="flex items-center gap-3">

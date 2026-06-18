@@ -1,20 +1,10 @@
 import { useMemo, useState } from "react";
-import { Plus, Banknote, PiggyBank } from "lucide-react";
+import { Plus } from "lucide-react";
 import type { ModuleKind } from "../types";
 import { useApp } from "../state/AppContext";
 import { AnalysisTable } from "../components/AnalysisTable";
 import { NewAnalysisModal } from "../components/NewAnalysisModal";
-
-const COPY: Record<ModuleKind, { title: string; desc: string }> = {
-  income: {
-    title: "Income Analysis",
-    desc: "W-2s, paystubs, tax returns, and self-employment income.",
-  },
-  asset: {
-    title: "Asset Analysis",
-    desc: "Bank statements, investment and retirement accounts.",
-  },
-};
+import { MODULE_LABEL, MODULE_DESC, MODULE_ICON } from "../lib/modules";
 
 export function AnalysisList({ module }: { module: ModuleKind }) {
   const { analyses } = useApp();
@@ -28,8 +18,7 @@ export function AnalysisList({ module }: { module: ModuleKind }) {
     [analyses, module],
   );
 
-  const copy = COPY[module];
-  const Icon = module === "income" ? Banknote : PiggyBank;
+  const Icon = MODULE_ICON[module];
 
   return (
     <div className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8">
@@ -39,8 +28,8 @@ export function AnalysisList({ module }: { module: ModuleKind }) {
             <Icon className="h-5 w-5" />
           </span>
           <div>
-            <h1 className="text-2xl font-bold text-navy">{copy.title}</h1>
-            <p className="mt-0.5 text-sm text-ink-500">{copy.desc}</p>
+            <h1 className="text-2xl font-bold text-navy">{MODULE_LABEL[module]} Analysis</h1>
+            <p className="mt-0.5 text-sm text-ink-500">{MODULE_DESC[module]}</p>
           </div>
         </div>
         <button className="btn-primary" onClick={() => setModalOpen(true)}>

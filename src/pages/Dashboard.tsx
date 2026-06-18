@@ -16,6 +16,7 @@ import {
 import { downloadCSV } from "../lib/export";
 import { maskIdentifier } from "../mock/tokenization";
 import { formatDateTime } from "../lib/format";
+import { MODULE_LABEL } from "../lib/modules";
 
 export function Dashboard() {
   const { analyses, reveal } = useApp();
@@ -53,7 +54,7 @@ export function Dashboard() {
       ...recent.map((a) => [
         a.loanNumber,
         reveal ? a.borrowerName : maskIdentifier("name", a.borrowerName),
-        a.module === "income" ? "Income" : "Asset",
+        MODULE_LABEL[a.module],
         STATUS_LABEL[a.status],
         avgConfidence(a),
         overrideCount(a),

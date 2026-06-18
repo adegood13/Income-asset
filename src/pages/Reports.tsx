@@ -189,8 +189,9 @@ export function Reports() {
               <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: "#94A6B5" }} axisLine={false} tickLine={false} unit="h" />
               <Tooltip cursor={{ fill: "#F7F9FB" }} contentStyle={tooltipStyle} formatter={(v) => [`${v} h`, "Avg turn time"]} />
               <Bar dataKey="hours" radius={[6, 6, 0, 0]} maxBarSize={80}>
-                <Cell fill="#1281DE" />
-                <Cell fill="#19D467" />
+                {["#1281DE", "#19D467", "#0AC6FF"].map((c, i) => (
+                  <Cell key={i} fill={c} />
+                ))}
               </Bar>
             </BarChart>
           </ResponsiveContainer>

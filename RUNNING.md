@@ -71,6 +71,11 @@ browser's **localStorage**, so it survives a refresh. To start over, go to
    and **+ Add deposit line item** for anything the system missed. The right
    panel offers **Personal (avg deposits)** and **Business (50% expense factor)**
    methods; the lineage shows each month's eligible total → sum → ÷ months.
+3d. **DSCR analysis (investment property)** — the third module. **New analysis →
+   DSCR**, add a Lease Agreement, a Form 1007 rent schedule, and an Operating
+   Statement (PITIA) — or open the seeded **LN-2026-00510**. The result is a
+   **ratio** (rent ÷ PITIA, e.g. 1.30×) with a pass/fail vs the 1.00 floor;
+   methods cover lease rent, 1007 market rent, and vacancy-adjusted rent.
 4. **PII mask toggle** (top bar) — flips identifier masking everywhere. Off by
    default (identifiers masked). **Now role-gated**: only roles with the
    `pii:reveal` permission can unmask. Switch roles from the avatar menu
