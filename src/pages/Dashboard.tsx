@@ -1,18 +1,27 @@
 import { useMemo, useState } from "react";
-import { Plus, FolderOpen, ClipboardCheck, CheckCircle2 } from "lucide-react";
+import { Plus, FolderOpen, ClipboardCheck, CheckCircle2, Search, Download, X } from "lucide-react";
 import { useApp } from "../state/AppContext";
 import { AnalysisTable } from "../components/AnalysisTable";
 import { NewAnalysisModal } from "../components/NewAnalysisModal";
 import { ConfidenceBadge } from "../components/ConfidenceBadge";
+import { STATUS_LABEL } from "../components/StatusChip";
+import { useToast } from "../components/Toast";
 import {
   countByStatus,
   fleetAvgConfidence,
   finalizedThisWeek,
+  avgConfidence,
+  overrideCount,
 } from "../lib/analytics";
+import { downloadCSV } from "../lib/export";
+import { maskIdentifier } from "../mock/tokenization";
+import { formatDateTime } from "../lib/format";
 
 export function Dashboard() {
-  const { analyses } = useApp();
+  const { analyses, reveal } = useApp();
+  const toast = useToast();
   const [modalOpen, setModalOpen] = useState(false);
+  const [query, setQuery] = useState("");
 
   const stats = useMemo(() => {
     const byStatus = countByStatus(analyses);
@@ -24,10 +33,36 @@ export function Dashboard() {
     };
   }, [analyses]);
 
-  const recent = useMemo(
-    () => [...analyses].sort((a, b) => +new Date(b.updatedAt) - +new Date(a.updatedAt)),
-    [analyses],
-  );
+  // Search by loan number or borrower name (matches the real value even when
+  // PII is masked on screen), then sort by most-recently updated.
+  const recent = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return [...analyses]
+      .filter(
+        (a) =>
+          !q ||
+          a.loanNumber.toLowerCase().includes(q) ||
+          a.borrowerName.toLowerCase().includes(q),
+      )
+      .sort((a, b) => +new Date(b.updatedAt) - +new Date(a.updatedAt));
+  }, [analyses, query]);
+
+  const exportCsv = () => {
+    const rows: (string | number)[][] = [
+      ["Loan number", "Borrower", "Module", "Status", "Avg confidence", "Overrides", "Updated"],
+      ...recent.map((a) => [
+        a.loanNumber,
+        reveal ? a.borrowerName : maskIdentifier("name", a.borrowerName),
+        a.module === "income" ? "Income" : "Asset",
+        STATUS_LABEL[a.status],
+        avgConfidence(a),
+        overrideCount(a),
+        formatDateTime(a.updatedAt),
+      ]),
+    ];
+    downloadCSV(`askbob-analyses-${new Date().toISOString().slice(0, 10)}.csv`, rows);
+    toast(`Exported ${recent.length} ${recent.length === 1 ? "analysis" : "analyses"} to CSV`, "success");
+  };
 
   return (
     <div className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8">
@@ -39,10 +74,16 @@ export function Dashboard() {
             Every income and asset analysis, <span className="serif-accent text-brand">clearly</span> answered.
           </p>
         </div>
-        <button className="btn-primary" onClick={() => setModalOpen(true)}>
-          <Plus className="h-4 w-4" />
-          New analysis
-        </button>
+        <div className="flex items-center gap-2">
+          <button className="btn-secondary" onClick={exportCsv}>
+            <Download className="h-4 w-4" />
+            Export
+          </button>
+          <button className="btn-primary" onClick={() => setModalOpen(true)}>
+            <Plus className="h-4 w-4" />
+            New analysis
+          </button>
+        </div>
       </div>
 
       {/* Summary cards */}
@@ -77,9 +118,34 @@ export function Dashboard() {
 
       {/* Recent analyses */}
       <div className="mt-8">
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-navy">Recent analyses</h2>
-          <span className="text-sm text-ink-400">{analyses.length} total</span>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-lg font-bold text-navy">
+            {query ? "Search results" : "Recent analyses"}
+          </h2>
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search loan # or borrower…"
+                aria-label="Search analyses by loan number or borrower name"
+                className="input w-64 max-w-[70vw] pl-9 pr-8"
+              />
+              {query && (
+                <button
+                  onClick={() => setQuery("")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-ink-400 hover:text-ink-700"
+                  aria-label="Clear search"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+            <span className="hidden text-sm text-ink-400 sm:inline">
+              {recent.length} of {analyses.length}
+            </span>
+          </div>
         </div>
         <AnalysisTable analyses={recent} />
       </div>

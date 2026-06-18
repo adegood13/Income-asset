@@ -19,6 +19,7 @@ import { navigate } from "../state/router";
 import { DocumentList } from "../components/DocumentList";
 import { DataPointsPanel } from "../components/DataPointsPanel";
 import { CalculationPanel } from "../components/CalculationPanel";
+import { CalculationLineage } from "../components/CalculationLineage";
 import { NotesDrawer } from "../components/NotesDrawer";
 import { AddDocumentModal } from "../components/AddDocumentModal";
 import { PopoutWindow } from "../components/PopoutWindow";
@@ -44,7 +45,7 @@ function loadCols(): { left: number; right: number } {
   }
 }
 
-type PanelKey = "docs" | "data" | "calc";
+type PanelKey = "docs" | "data" | "calc" | "lineage";
 
 export function AnalysisWorkspace({ id }: { id: string }) {
   const { getAnalysis, reveal, can, setMethod, setGuideline, recalc, finalize, setStatus } = useApp();
@@ -61,6 +62,7 @@ export function AnalysisWorkspace({ id }: { id: string }) {
     docs: false,
     data: false,
     calc: false,
+    lineage: false,
   });
 
   // Resizable column widths (left + right; center flexes).
@@ -178,6 +180,9 @@ export function AnalysisWorkspace({ id }: { id: string }) {
         toast("Recalculated", "info");
       }}
       onPopOut={inPopup ? undefined : () => setPop("calc", true)}
+      onPopOutLineage={inPopup ? undefined : () => setPop("lineage", true)}
+      lineagePopped={inPopup ? false : popped.lineage}
+      onReturnLineage={() => setPop("lineage", false)}
     />
   );
 
@@ -367,6 +372,25 @@ export function AnalysisWorkspace({ id }: { id: string }) {
           onReturn={() => setPop("calc", false)}
         >
           <div className="h-full overflow-auto scroll-thin">{calcNode(true)}</div>
+        </PopoutWindow>
+      )}
+      {popped.lineage && (
+        <PopoutWindow
+          title="Calculation lineage"
+          width={460}
+          onClose={() => setPop("lineage", false)}
+          onReturn={() => setPop("lineage", false)}
+        >
+          <div className="flex h-full flex-col">
+            <CalculationLineage
+              analysis={analysis}
+              locked={locked}
+              onRecalc={() => {
+                recalc(analysis.id);
+                toast("Recalculated", "info");
+              }}
+            />
+          </div>
         </PopoutWindow>
       )}
 

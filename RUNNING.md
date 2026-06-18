@@ -33,6 +33,8 @@ browser's **localStorage**, so it survives a refresh. To start over, go to
 ## What to try
 
 1. **Dashboard** → summary cards + a table of seeded analyses. Click any row.
+   **Search** by loan number or borrower name (matches the real name even when PII
+   is masked), and **Export** the current list to CSV.
 2. **New analysis** → pick Income or Asset, auto-generate or type a loan number,
    "upload" a sample document (mock ~1s extraction), and land in the workspace.
 3. **Workspace** (the centerpiece, three columns):
@@ -54,10 +56,11 @@ browser's **localStorage**, so it survives a refresh. To start over, go to
      `GUIDELINE_GROUPS` in `src/mock/rules.ts`.
    - **Resize the columns** — drag the dividers between columns (desktop ≥1280px);
      widths persist to `localStorage`.
-   - **Pop out a panel** — the ⤢ icon on each panel opens it in a separate
-     browser window (shares live state, so edits stay in sync) for side-by-side
-     comparison across monitors. Close the window or click "Return" to re-dock.
-     *(Allow pop-ups for the site.)*
+   - **Pop out a panel** — the ⤢ icon on Documents, Data points, Calculation, and
+     the **Calculation lineage** opens it in a **separate OS window** (not a tab),
+     so you can place panels side-by-side across monitors. Popped panels share
+     live state (edits stay in sync). Close the window or click "Return" to
+     re-dock. *(Allow pop-ups for the site.)*
    - Header actions: **Save**, **Finalize** (locks the analysis), **Export**
      (printable worksheet or JSON), and an append-only **Notes** drawer.
 4. **PII mask toggle** (top bar) — flips identifier masking everywhere. Off by
