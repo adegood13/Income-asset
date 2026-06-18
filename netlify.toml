@@ -1,0 +1,17 @@
+# Netlify build configuration.
+# Without this, Netlify may publish the repo root (serving the source
+# index.html, whose /src/main.tsx module can't execute in a browser) and you
+# get a blank white page. This forces a real Vite build and publishes /dist.
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# SPA fallback (harmless for this hash-routed app, future-proof if routing changes).
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
