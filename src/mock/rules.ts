@@ -14,6 +14,7 @@ import type {
   CalcStep,
   CalculationResult,
   CapturedField,
+  DocType,
   DocumentRecord,
   ModuleKind,
 } from "../types";
@@ -25,6 +26,8 @@ interface MethodDef {
   module: ModuleKind;
   // Short note shown under the method dropdown.
   blurb: string;
+  // If set, the method is only offered when one of these doc types is present.
+  appliesTo?: DocType[];
   compute: (docs: DocumentRecord[]) => CalculationResult;
 }
 
@@ -83,6 +86,7 @@ const w2TwoYearAverage: MethodDef = {
   id: "w2_2yr_avg",
   label: "2-Year Average, Salaried W-2",
   module: "income",
+  appliesTo: ["W2"],
   blurb: "Averages Box 1 wages across available W-2 years, then divides by 12.",
   compute: (docs) => {
     const w2s = docs.filter((d) => d.docType === "W2");
@@ -119,6 +123,7 @@ const w2CurrentYear: MethodDef = {
   id: "w2_current",
   label: "Current Year W-2 (Box 1 ÷ 12)",
   module: "income",
+  appliesTo: ["W2"],
   blurb: "Uses only the most recent W-2's Box 1 wages.",
   compute: (docs) => {
     const w2s = docs.filter((d) => d.docType === "W2");
@@ -145,6 +150,7 @@ const paystubYtd: MethodDef = {
   id: "paystub_ytd",
   label: "Paystub YTD Annualized",
   module: "income",
+  appliesTo: ["Paystub"],
   blurb: "Annualizes year-to-date gross by the number of months elapsed.",
   compute: (docs) => {
     const stub = docs.find((d) => d.docType === "Paystub");
@@ -176,6 +182,7 @@ const schCWithAddbacks: MethodDef = {
   id: "sch_c_addbacks",
   label: "Self-Employed, Schedule C with add-backs",
   module: "income",
+  appliesTo: ["ScheduleC"],
   blurb: "Net profit plus depreciation, home-office, and meals add-backs, ÷ 12.",
   compute: (docs) => {
     const net = num(findField(docs, "Net Profit"));
@@ -209,6 +216,7 @@ const k1Income: MethodDef = {
   id: "k1_income",
   label: "K-1 Ordinary Income + Guaranteed Payments",
   module: "income",
+  appliesTo: ["K1"],
   blurb: "Box 1 ordinary income plus Box 4 guaranteed payments, ÷ 12.",
   compute: (docs) => {
     const ordinary = num(findField(docs, "Ordinary Business Income"));
@@ -234,12 +242,97 @@ const k1Income: MethodDef = {
   },
 };
 
+/* ---------------------- Bank statement INCOME methods ---------------------- */
+// Non-QM: qualifying income from N months of bank statements. Sum each month's
+// eligible deposits (group "Deposits", not excluded, incl. manual lines), divide
+// by the number of months. Business variants apply an expense factor.
+
+function depositTotal(doc: DocumentRecord): number {
+  return doc.fields
+    .filter((x) => x.group === "Deposits" && !x.excluded)
+    .reduce((sum, x) => sum + asNumber(x.value), 0);
+}
+
+function bankStatementIncome(id: string, label: string, expenseFactor: number): MethodDef {
+  const pct = Math.round(expenseFactor * 100);
+  return {
+    id,
+    label,
+    module: "income",
+    appliesTo: ["BankStatement"],
+    blurb:
+      expenseFactor > 0
+        ? `Averages eligible monthly deposits across all statements, then applies a ${pct}% expense factor.`
+        : "Averages eligible monthly deposits across all statements.",
+    compute: (docs) => {
+      const stmts = docs.filter((d) => d.docType === "BankStatement");
+      const months = stmts.length || 1;
+      const steps: CalcStep[] = [];
+      let total = 0;
+      stmts.forEach((d) => {
+        const eligible = depositTotal(d);
+        total += eligible;
+        const n = d.fields.filter((x) => x.group === "Deposits" && !x.excluded).length;
+        steps.push({
+          label: d.periodLabel,
+          detail: `${n} eligible deposit${n === 1 ? "" : "s"}`,
+          result: round2(eligible),
+        });
+      });
+      steps.push({
+        label: "Total eligible deposits",
+        detail: `${months} month${months === 1 ? "" : "s"}`,
+        result: round2(total),
+        emphasis: "subtotal",
+      });
+
+      let adjusted = total;
+      if (expenseFactor > 0) {
+        const expense = total * expenseFactor;
+        adjusted = total - expense;
+        steps.push({
+          label: `− ${pct}% expense factor`,
+          detail: "Business expense allowance",
+          result: -round2(expense),
+          emphasis: "flag",
+        });
+        steps.push({
+          label: "Net deposits after expenses",
+          detail: `${formatMoney(total)} × ${100 - pct}%`,
+          result: round2(adjusted),
+          emphasis: "subtotal",
+        });
+      }
+
+      const monthly = adjusted / months;
+      steps.push({
+        label: "Monthly qualifying income",
+        detail: `${formatMoney(adjusted)} ÷ ${months} months`,
+        result: round2(monthly),
+      });
+      return result(id, label, monthly, steps);
+    },
+  };
+}
+
+const bankIncomePersonal = bankStatementIncome(
+  "bank_income_personal",
+  "Bank Statements — Personal (avg deposits)",
+  0,
+);
+const bankIncomeBusiness50 = bankStatementIncome(
+  "bank_income_business_50",
+  "Bank Statements — Business (50% expense factor)",
+  0.5,
+);
+
 /* ----------------------------- ASSET methods ------------------------------ */
 
 const avgBalance: MethodDef = {
   id: "avg_balance",
   label: "Average Daily Balance",
   module: "asset",
+  appliesTo: ["BankStatement"],
   blurb: "Sums average daily balances across deposit accounts.",
   compute: (docs) => {
     const balances = findAll(docs, "Average Daily Balance");
@@ -263,6 +356,7 @@ const endingBalance: MethodDef = {
   id: "ending_balance",
   label: "Ending Balance",
   module: "asset",
+  appliesTo: ["BankStatement"],
   blurb: "Sums statement ending balances across deposit accounts.",
   compute: (docs) => {
     const balances = findAll(docs, "Ending Balance");
@@ -286,6 +380,7 @@ const largeDepositNet: MethodDef = {
   id: "large_deposit_net",
   label: "Ending Balance, Net of Large Deposits",
   module: "asset",
+  appliesTo: ["BankStatement"],
   blurb: "Removes flagged large deposits as unsourced funds.",
   compute: (docs) => {
     const ending = findAll(docs, "Ending Balance").reduce((a, b) => a + asNumber(b.value), 0);
@@ -320,6 +415,7 @@ function retirementHaircut(rate: number): MethodDef {
     id: `retirement_haircut_${pct}`,
     label: `Retirement Haircut (${pct}%)`,
     module: "asset",
+    appliesTo: ["InvestmentStatement"],
     blurb: `Applies a ${pct}% factor to vested retirement balances, net of loans.`,
     compute: (docs) => {
       const vested = num(findField(docs, "Vested Balance"));
@@ -353,6 +449,8 @@ export const INCOME_METHODS: MethodDef[] = [
   paystubYtd,
   schCWithAddbacks,
   k1Income,
+  bankIncomePersonal,
+  bankIncomeBusiness50,
 ];
 
 export const ASSET_METHODS: MethodDef[] = [
@@ -365,8 +463,15 @@ export const ASSET_METHODS: MethodDef[] = [
 
 const ALL_METHODS = [...INCOME_METHODS, ...ASSET_METHODS];
 
-export function getMethodsForModule(module: ModuleKind): MethodDef[] {
-  return module === "income" ? INCOME_METHODS : ASSET_METHODS;
+// Methods for a module, optionally filtered to those relevant to the documents
+// present (so a bank-statement income analysis shows bank-statement methods,
+// not W-2 methods, and vice versa).
+export function getMethodsForModule(module: ModuleKind, docs?: DocumentRecord[]): MethodDef[] {
+  const all = module === "income" ? INCOME_METHODS : ASSET_METHODS;
+  if (!docs || docs.length === 0) return all;
+  const types = new Set(docs.map((d) => d.docType));
+  const relevant = all.filter((m) => !m.appliesTo || m.appliesTo.some((t) => types.has(t)));
+  return relevant.length > 0 ? relevant : all;
 }
 
 export function getMethod(id: string): MethodDef | undefined {
@@ -381,6 +486,7 @@ export function defaultMethodFor(module: ModuleKind, docs: DocumentRecord[]): st
     if (types.has("ScheduleC")) return schCWithAddbacks.id;
     if (types.has("K1")) return k1Income.id;
     if (types.has("Paystub")) return paystubYtd.id;
+    if (types.has("BankStatement")) return bankIncomePersonal.id;
     return w2TwoYearAverage.id;
   }
   if (types.has("InvestmentStatement") && !types.has("BankStatement")) return retirement60.id;

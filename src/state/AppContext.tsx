@@ -56,6 +56,7 @@ interface AppState {
 
   getAnalysis: (id: string) => Analysis | undefined;
   createAnalysis: (module: ModuleKind, loanNumber: string, firstDoc: DocumentRecord) => Analysis;
+  createAnalysisWithDocs: (module: ModuleKind, loanNumber: string, docs: DocumentRecord[]) => Analysis;
   addDocument: (analysisId: string, doc: DocumentRecord) => void;
   updateField: (
     analysisId: string,
@@ -64,6 +65,9 @@ interface AppState {
     patch: Partial<CapturedField>,
   ) => void;
   resetField: (analysisId: string, docId: string, fieldId: string) => void;
+  toggleFieldExcluded: (analysisId: string, docId: string, fieldId: string, excluded: boolean) => void;
+  addManualField: (analysisId: string, docId: string, group: string) => void;
+  removeField: (analysisId: string, docId: string, fieldId: string) => void;
   setMethod: (analysisId: string, methodId: string) => void;
   setGuideline: (analysisId: string, guidelineId: string) => void;
   recalc: (analysisId: string) => void;
@@ -165,19 +169,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [analyses],
   );
 
-  const createAnalysis = useCallback(
-    (module: ModuleKind, loanNumber: string, firstDoc: DocumentRecord): Analysis => {
+  const createAnalysisWithDocs = useCallback(
+    (module: ModuleKind, loanNumber: string, docs: DocumentRecord[]): Analysis => {
       const now = new Date().toISOString();
-      const method = defaultMethodFor(module, [firstDoc]);
+      const method = defaultMethodFor(module, docs);
       const analysis: Analysis = {
         id: uid("ana"),
         loanNumber: loanNumber.trim() || GENERATED_LOAN(),
         module,
-        borrowerName: deriveBorrowerName(firstDoc),
+        borrowerName: docs[0] ? deriveBorrowerName(docs[0]) : "New Borrower",
         status: "draft",
-        documents: [firstDoc],
+        documents: docs,
         method,
-        result: runCalculation([firstDoc], method),
+        result: runCalculation(docs, method),
         notes: [],
         createdAt: now,
         updatedAt: now,
@@ -186,6 +190,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return analysis;
     },
     [],
+  );
+
+  const createAnalysis = useCallback(
+    (module: ModuleKind, loanNumber: string, firstDoc: DocumentRecord): Analysis =>
+      createAnalysisWithDocs(module, loanNumber, [firstDoc]),
+    [createAnalysisWithDocs],
   );
 
   const addDocument = useCallback((analysisId: string, doc: DocumentRecord) => {
@@ -249,6 +259,54 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return touch({ ...a, documents, result: runCalculation(documents, method) });
       }),
     );
+  }, []);
+
+  // Helper: map a single document's fields and recalc.
+  const mutateDoc = (
+    analysisId: string,
+    docId: string,
+    fn: (fields: CapturedField[]) => CapturedField[],
+  ) => {
+    setAnalyses((prev) =>
+      prev.map((a) => {
+        if (a.id !== analysisId) return a;
+        const documents = a.documents.map((d) => (d.id !== docId ? d : { ...d, fields: fn(d.fields) }));
+        const method = a.method ?? defaultMethodFor(a.module, documents);
+        return touch({ ...a, documents, result: runCalculation(documents, method) });
+      }),
+    );
+  };
+
+  // Bank-statement income: include/exclude a deposit from the calculation.
+  const toggleFieldExcluded = useCallback(
+    (analysisId: string, docId: string, fieldId: string, excluded: boolean) => {
+      mutateDoc(analysisId, docId, (fields) =>
+        fields.map((f) => (f.id === fieldId ? { ...f, excluded } : f)),
+      );
+    },
+    [],
+  );
+
+  // Add a manual deposit line item the reviewer enters by hand.
+  const addManualField = useCallback((analysisId: string, docId: string, group: string) => {
+    const field: CapturedField = {
+      id: uid("fld"),
+      label: "Manual deposit",
+      value: 0,
+      originalValue: 0,
+      type: "financial",
+      confidence: 100,
+      provenance: "Manual entry",
+      overridden: false,
+      manual: true,
+      group,
+    };
+    mutateDoc(analysisId, docId, (fields) => [...fields, field]);
+  }, []);
+
+  // Remove a (manual) line item.
+  const removeField = useCallback((analysisId: string, docId: string, fieldId: string) => {
+    mutateDoc(analysisId, docId, (fields) => fields.filter((f) => f.id !== fieldId));
   }, []);
 
   const setMethod = useCallback((analysisId: string, methodId: string) => {
@@ -340,9 +398,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setReveal,
       getAnalysis,
       createAnalysis,
+      createAnalysisWithDocs,
       addDocument,
       updateField,
       resetField,
+      toggleFieldExcluded,
+      addManualField,
+      removeField,
       setMethod,
       setGuideline,
       recalc,
@@ -364,9 +426,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setReveal,
       getAnalysis,
       createAnalysis,
+      createAnalysisWithDocs,
       addDocument,
       updateField,
       resetField,
+      toggleFieldExcluded,
+      addManualField,
+      removeField,
       setMethod,
       setGuideline,
       recalc,

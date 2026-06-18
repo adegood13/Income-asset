@@ -29,7 +29,7 @@ export function CalculationPanel({
   lineagePopped,
   onReturnLineage,
 }: Props) {
-  const methods = getMethodsForModule(analysis.module);
+  const methods = getMethodsForModule(analysis.module, analysis.documents);
   const currentMethod = getMethod(analysis.method ?? "");
   const result = analysis.result;
   const resultLabel = analysis.module === "income" ? "Qualifying monthly income" : "Qualifying assets";

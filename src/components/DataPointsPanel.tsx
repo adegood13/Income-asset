@@ -1,10 +1,11 @@
-import { Sparkles, FileSearch, ExternalLink } from "lucide-react";
+import { Sparkles, FileSearch, ExternalLink, Plus } from "lucide-react";
 import type { DocumentRecord } from "../types";
 import { FieldRow } from "./FieldRow";
 import { ConfidenceBadge } from "./ConfidenceBadge";
 import { DOC_TYPE_LABEL } from "../mock/extraction";
 import { openDocumentView } from "../mock/documentViewer";
 import { useApp } from "../state/AppContext";
+import { asNumber, formatMoney } from "../lib/format";
 import { DocIcon } from "./DocIcon";
 
 interface Props {
@@ -13,6 +14,8 @@ interface Props {
   locked: boolean;
   onView?: () => void;
   onPopOut?: () => void;
+  // Bank-statement income: allow include/exclude + manual deposit line items.
+  bankIncome?: boolean;
 }
 
 // Stable group ordering across both modules.
@@ -34,10 +37,14 @@ function groupFields(doc: DocumentRecord) {
   );
 }
 
-export function DataPointsPanel({ analysisId, doc, locked, onView, onPopOut }: Props) {
-  const { reveal } = useApp();
+export function DataPointsPanel({ analysisId, doc, locked, onView, onPopOut, bankIncome }: Props) {
+  const { reveal, addManualField } = useApp();
   const groups = groupFields(doc);
   const lowCount = doc.fields.filter((f) => f.confidence < 70).length;
+  // Eligible monthly deposits for this statement (bank-statement income).
+  const eligibleDeposits = doc.fields
+    .filter((f) => f.group === "Deposits" && !f.excluded)
+    .reduce((s, f) => s + asNumber(f.value), 0);
 
   return (
     <div className="flex h-full flex-col">
@@ -90,6 +97,14 @@ export function DataPointsPanel({ analysisId, doc, locked, onView, onPopOut }: P
         </span>
       </div>
 
+      {/* Bank-statement income: this month's eligible-deposit total */}
+      {bankIncome && (
+        <div className="mt-2 flex items-center justify-between rounded-lg border border-green/20 bg-green-tint px-3 py-2 text-xs">
+          <span className="font-medium text-ink-600">Eligible deposits this statement</span>
+          <span className="font-mono font-semibold text-green-deep">{formatMoney(eligibleDeposits, { cents: true })}</span>
+        </div>
+      )}
+
       {/* Grouped fields */}
       <div className="mt-2 min-h-0 flex-1 space-y-5 overflow-y-auto pr-1 scroll-thin">
         {groups.map(([group, fields]) => (
@@ -107,9 +122,18 @@ export function DataPointsPanel({ analysisId, doc, locked, onView, onPopOut }: P
                   field={field}
                   locked={locked}
                   onLocate={(fid) => openDocumentView(doc, reveal, fid)}
+                  allowExclude={bankIncome && field.group === "Deposits"}
                 />
               ))}
             </div>
+            {bankIncome && group === "Deposits" && !locked && (
+              <button
+                onClick={() => addManualField(analysisId, doc.id, "Deposits")}
+                className="mt-1.5 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-ink-300 px-3 py-2 text-xs font-medium text-ink-500 transition hover:border-brand hover:bg-brand-tint hover:text-brand"
+              >
+                <Plus className="h-3.5 w-3.5" /> Add deposit line item
+              </button>
+            )}
           </div>
         ))}
       </div>

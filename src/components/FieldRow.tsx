@@ -1,5 +1,16 @@
 import { useEffect, useRef, useState } from "react";
-import { EyeOff, MessageSquarePlus, MessageSquareText, RotateCcw, PenLine, FileSearch, Lock } from "lucide-react";
+import {
+  EyeOff,
+  MessageSquarePlus,
+  MessageSquareText,
+  RotateCcw,
+  PenLine,
+  FileSearch,
+  Lock,
+  CheckCircle2,
+  Ban,
+  Trash2,
+} from "lucide-react";
 import type { CapturedField } from "../types";
 import { ConfidenceBadge } from "./ConfidenceBadge";
 import { useApp } from "../state/AppContext";
@@ -12,11 +23,14 @@ interface Props {
   field: CapturedField;
   locked: boolean;
   onLocate?: (fieldId: string) => void;
+  allowExclude?: boolean; // bank-statement income: include/exclude this deposit
 }
 
-export function FieldRow({ analysisId, docId, field, locked, onLocate }: Props) {
-  const { reveal, updateField, resetField, confidenceLockThreshold } = useApp();
+export function FieldRow({ analysisId, docId, field, locked, onLocate, allowExclude }: Props) {
+  const { reveal, updateField, resetField, confidenceLockThreshold, toggleFieldExcluded, removeField } =
+    useApp();
   const [draft, setDraft] = useState(String(field.value));
+  const [labelDraft, setLabelDraft] = useState(field.label);
   const [editingNote, setEditingNote] = useState(false);
   const [noteDraft, setNoteDraft] = useState(field.note ?? "");
   const focused = useRef(false);
@@ -29,8 +43,10 @@ export function FieldRow({ analysisId, docId, field, locked, onLocate }: Props) 
   const isIdentifier = field.type === "identifier";
   const isFinancial = field.type === "financial";
   const masked = isIdentifier && !reveal;
-  // Admin policy: lock high-confidence fields from editing.
-  const policyLocked = confidenceLockThreshold != null && field.confidence >= confidenceLockThreshold;
+  // Admin policy: lock high-confidence captured fields from editing. Manual
+  // line items the reviewer added are never policy-locked.
+  const policyLocked =
+    !field.manual && confidenceLockThreshold != null && field.confidence >= confidenceLockThreshold;
   const valueLocked = locked || policyLocked;
 
   const commit = () => {
@@ -46,16 +62,38 @@ export function FieldRow({ analysisId, docId, field, locked, onLocate }: Props) 
     setEditingNote(false);
   };
 
+  const commitLabel = () => {
+    const next = labelDraft.trim() || "Manual deposit";
+    if (next !== field.label) updateField(analysisId, docId, field.id, { label: next });
+  };
+
   return (
     <div
       className={`group rounded-lg border px-3 py-2.5 transition
+        ${field.excluded ? "opacity-60" : ""}
         ${field.overridden ? "border-[#F5A623]/40 bg-[#FFFBF2] dark:bg-[#211D12]" : "border-transparent hover:border-ink-200 hover:bg-ink-50"}`}
     >
       {/* Primary row — label, value, and confidence aligned on one centered line */}
       <div className="flex items-center gap-3">
         {/* Label + status chips */}
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
-          <span className="text-sm font-medium text-ink-700">{field.label}</span>
+          {field.manual ? (
+            <input
+              value={labelDraft}
+              onChange={(e) => setLabelDraft(e.target.value)}
+              onBlur={commitLabel}
+              disabled={valueLocked}
+              placeholder="Label"
+              className="w-48 max-w-full rounded-md border border-ink-300 bg-surface px-2 py-1 text-sm font-medium text-ink-800 disabled:opacity-60"
+            />
+          ) : (
+            <span className="text-sm font-medium text-ink-700">{field.label}</span>
+          )}
+          {field.manual && (
+            <span className="inline-flex items-center gap-1 rounded bg-brand-tint px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-brand">
+              Manual
+            </span>
+          )}
           {field.overridden && (
             <span className="inline-flex items-center gap-1 rounded bg-[#FFF4E0] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#9A6300] dark:bg-[#2A2412] dark:text-[#E7B264]">
               <PenLine className="h-2.5 w-2.5" /> Overridden
@@ -128,9 +166,9 @@ export function FieldRow({ analysisId, docId, field, locked, onLocate }: Props) 
         </div>
       </div>
 
-      {/* Secondary row — source deep-link + reset, aligned under the label */}
+      {/* Secondary row — source deep-link, include/exclude, reset, remove */}
       <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-        {onLocate ? (
+        {onLocate && !field.manual ? (
           <button
             onClick={() => onLocate(field.id)}
             title={`Open source document at: ${field.provenance}`}
@@ -144,6 +182,23 @@ export function FieldRow({ analysisId, docId, field, locked, onLocate }: Props) 
             {field.provenance}
           </span>
         )}
+        {allowExclude && (
+          <button
+            onClick={() => toggleFieldExcluded(analysisId, docId, field.id, !field.excluded)}
+            disabled={locked}
+            className={`inline-flex items-center gap-1 text-[11px] font-semibold transition disabled:opacity-50 ${
+              field.excluded ? "text-ink-400 hover:text-ink-700" : "text-green-deep hover:text-green"
+            }`}
+            title={
+              field.excluded
+                ? "Excluded from income — click to include"
+                : "Included in income — click to exclude"
+            }
+          >
+            {field.excluded ? <Ban className="h-3 w-3" /> : <CheckCircle2 className="h-3 w-3" />}
+            {field.excluded ? "Excluded" : "Included"}
+          </button>
+        )}
         {field.overridden && (
           <button
             onClick={() => resetField(analysisId, docId, field.id)}
@@ -156,6 +211,16 @@ export function FieldRow({ analysisId, docId, field, locked, onLocate }: Props) 
             <span className="font-mono">
               {isFinancial ? formatMoney(asNumber(field.originalValue), { cents: true }) : String(field.originalValue)}
             </span>
+          </button>
+        )}
+        {field.manual && (
+          <button
+            onClick={() => removeField(analysisId, docId, field.id)}
+            disabled={locked}
+            className="inline-flex items-center gap-1 text-[11px] font-medium text-danger transition hover:underline disabled:opacity-50"
+            title="Remove this manual line"
+          >
+            <Trash2 className="h-3 w-3" /> Remove
           </button>
         )}
       </div>

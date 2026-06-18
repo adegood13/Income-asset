@@ -160,11 +160,76 @@ function investmentStatement(period: string, name: string, acct: string): Docume
 }
 
 /* -------------------------------------------------------------------------- */
+/* Bank statement INCOME bundle — 12 to 24 monthly statements                 */
+/* -------------------------------------------------------------------------- */
+
+const MONTH_ABBR = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const r2 = (n: number) => Math.round(n * 100) / 100;
+
+// One monthly statement. `idx` (0 = most recent) drives deterministic variation
+// so the 12–24 months look real but stable across reloads.
+function bankStatementMonth(date: Date, idx: number, name: string, acct: string): DocumentRecord {
+  const label = `${MONTH_ABBR[date.getMonth()]} ${date.getFullYear()}`;
+  const period = `Statement — ${label}`;
+  const payroll = 3238.46;
+  const misc = r2(320 + ((idx * 137) % 640)); // customer payment varies
+  const hasLarge = idx % 5 === 1; // an undocumented large deposit ~every 5th month
+  const beginning = r2(7800 + ((idx * 311) % 4200));
+
+  const deposits: CapturedField[] = [
+    f("Deposit 1st — Payroll, Cascade Logistics", payroll, "financial", 96, `${label} stmt, p.2 line 3`, "Deposits"),
+    f("Deposit 15th — Payroll, Cascade Logistics", payroll, "financial", idx % 3 === 0 ? 68 : 94, `${label} stmt, p.2 line 14`, "Deposits"),
+    f("Deposit — Customer payment", misc, "financial", idx % 4 === 0 ? 73 : 84, `${label} stmt, p.2 line 9`, "Deposits"),
+  ];
+  if (hasLarge) {
+    const large = f("Large Deposit — Wire transfer", r2(9500 + (idx % 3) * 1500), "financial", 63, `${label} stmt, p.2 line 21`, "Deposits");
+    large.excluded = true; // undocumented large deposits excluded from income by default
+    deposits.push(large);
+  }
+
+  const depositSum = deposits.reduce((s, d) => s + (d.value as number), 0);
+  const ending = r2(beginning + depositSum - 5400); // rough monthly outflow
+
+  return doc("BankStatement", period, [
+    f("Account Holder", name, "identifier", 96, `${label} stmt, p.1 header`, "Identifiers"),
+    f("Account Number", acct, "identifier", 93, `${label} stmt, p.1 header`, "Identifiers"),
+    f("Institution", "Harborline Bank", "text", 97, `${label} stmt, p.1 header`, "Identifiers"),
+    f("Beginning Balance", beginning, "financial", 96, `${label} stmt, p.1 summary`, "Balances"),
+    f("Ending Balance", ending, "financial", 95, `${label} stmt, p.1 summary`, "Balances"),
+    ...deposits,
+  ]);
+}
+
+// Build N monthly statements (most recent first).
+export function extractBankStatementBundle(
+  months: number,
+  name = "Jordan Avery",
+  acct = "000455500123",
+): DocumentRecord[] {
+  const base = new Date("2026-05-01");
+  const out: DocumentRecord[] = [];
+  for (let i = 0; i < months; i++) {
+    const d = new Date(base);
+    d.setMonth(d.getMonth() - i);
+    out.push(bankStatementMonth(d, i, name, acct));
+  }
+  return out;
+}
+
+// MOCK async bundle "upload + extraction".
+export function extractBankStatementBundleAsync(months: number): Promise<DocumentRecord[]> {
+  return new Promise((resolve) => {
+    setTimeout(() => resolve(extractBankStatementBundle(months)), 1100);
+  });
+}
+
+/* -------------------------------------------------------------------------- */
 /* Registry + public API                                                      */
 /* -------------------------------------------------------------------------- */
 
-// What the "upload" picker offers per module.
-export const INCOME_DOC_TYPES: DocType[] = ["W2", "Paystub", "1040", "ScheduleC", "ScheduleE", "K1"];
+// What the "upload" picker offers per module. In income, "BankStatement" means
+// the 12–24 month bank-statement-income bundle (handled in NewAnalysisModal).
+export const INCOME_DOC_TYPES: DocType[] = ["W2", "Paystub", "1040", "ScheduleC", "ScheduleE", "K1", "BankStatement"];
 export const ASSET_DOC_TYPES: DocType[] = ["BankStatement", "InvestmentStatement"];
 
 export const DOC_TYPE_LABEL: Record<DocType, string> = {

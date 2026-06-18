@@ -164,6 +164,7 @@ export function AnalysisWorkspace({ id }: { id: string }) {
         locked={locked}
         onView={() => openDocumentView(selectedDoc, reveal)}
         onPopOut={inPopup ? undefined : () => setPop("data", true)}
+        bankIncome={analysis.module === "income" && selectedDoc.docType === "BankStatement"}
       />
     ) : (
       <p className="py-10 text-center text-sm text-ink-400">No documents attached.</p>

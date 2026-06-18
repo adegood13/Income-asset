@@ -10,6 +10,7 @@ import {
   DOC_TYPE_LABEL,
   INCOME_DOC_TYPES,
   extractDocument,
+  extractBankStatementBundleAsync,
 } from "../mock/extraction";
 import { generateLoanNumber } from "../lib/id";
 
@@ -22,18 +23,25 @@ interface Props {
 type Phase = "configure" | "extracting";
 
 export function NewAnalysisModal({ open, onClose, defaultModule = "income" }: Props) {
-  const { createAnalysis } = useApp();
+  const { createAnalysis, createAnalysisWithDocs } = useApp();
   const [module, setModule] = useState<ModuleKind>(defaultModule);
   const [loanNumber, setLoanNumber] = useState(generateLoanNumber());
   const [docType, setDocType] = useState<DocType | null>(null);
+  const [months, setMonths] = useState(12);
   const [phase, setPhase] = useState<Phase>("configure");
 
   const docTypes = module === "income" ? INCOME_DOC_TYPES : ASSET_DOC_TYPES;
+  // Bank statements in the income module = the 12–24 month income bundle.
+  const isBankIncome = module === "income" && docType === "BankStatement";
+
+  const docLabel = (t: DocType) =>
+    module === "income" && t === "BankStatement" ? "Bank statements (12–24 mo income)" : DOC_TYPE_LABEL[t];
 
   const reset = () => {
     setPhase("configure");
     setDocType(null);
     setModule(defaultModule);
+    setMonths(12);
     setLoanNumber(generateLoanNumber());
   };
 
@@ -51,9 +59,15 @@ export function NewAnalysisModal({ open, onClose, defaultModule = "income" }: Pr
   const handleCreate = async () => {
     if (!docType) return;
     setPhase("extracting");
-    const doc = await extractDocument(docType); // MOCK extraction (~1s)
-    const analysis = createAnalysis(module, loanNumber, doc);
-    navigate(`/analysis/${analysis.id}`);
+    if (isBankIncome) {
+      const docs = await extractBankStatementBundleAsync(months); // MOCK blob upload
+      const analysis = createAnalysisWithDocs("income", loanNumber, docs);
+      navigate(`/analysis/${analysis.id}`);
+    } else {
+      const doc = await extractDocument(docType); // MOCK extraction (~1s)
+      const analysis = createAnalysis(module, loanNumber, doc);
+      navigate(`/analysis/${analysis.id}`);
+    }
     reset();
     onClose();
   };
@@ -86,8 +100,16 @@ export function NewAnalysisModal({ open, onClose, defaultModule = "income" }: Pr
             <FileCheck2 className="absolute inset-0 m-auto h-5 w-5 text-brand" />
           </div>
           <div>
-            <p className="font-semibold text-navy">Extracting {docType && DOC_TYPE_LABEL[docType]}…</p>
-            <p className="mt-1 text-sm text-ink-500">Classifying document and capturing fields with confidence scores.</p>
+            <p className="font-semibold text-navy">
+              {isBankIncome
+                ? `Extracting ${months} monthly bank statements…`
+                : `Extracting ${docType && DOC_TYPE_LABEL[docType]}…`}
+            </p>
+            <p className="mt-1 text-sm text-ink-500">
+              {isBankIncome
+                ? "Classifying each statement and capturing every deposit with confidence scores."
+                : "Classifying document and capturing fields with confidence scores."}
+            </p>
           </div>
         </div>
       ) : (
@@ -136,11 +158,13 @@ export function NewAnalysisModal({ open, onClose, defaultModule = "income" }: Pr
 
           {/* Document drop zone */}
           <div>
-            <label className="eyebrow mb-2 block">First document</label>
+            <label className="eyebrow mb-2 block">{isBankIncome ? "Documents" : "First document"}</label>
             <div className="rounded-xl border-2 border-dashed border-ink-300 bg-ink-50 p-4">
               <div className="mb-3 flex items-center gap-2 text-sm text-ink-500">
                 <UploadCloud className="h-4 w-4" />
-                Drop a file to upload — or pick a sample document to extract:
+                {module === "income"
+                  ? "Drop files to upload — or pick a sample to extract:"
+                  : "Drop a file to upload — or pick a sample document to extract:"}
               </div>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                 {docTypes.map((t) => (
@@ -151,13 +175,40 @@ export function NewAnalysisModal({ open, onClose, defaultModule = "income" }: Pr
                       ${docType === t ? "border-brand bg-brand-tint" : "border-ink-200 bg-surface hover:border-ink-300"}`}
                   >
                     <DocIcon type={t} className={`h-4 w-4 shrink-0 ${docType === t ? "text-brand" : "text-ink-500"}`} />
-                    <span className="text-xs font-medium leading-tight text-ink-700">{DOC_TYPE_LABEL[t]}</span>
+                    <span className="text-xs font-medium leading-tight text-ink-700">{docLabel(t)}</span>
                   </button>
                 ))}
               </div>
+
+              {/* Bank-statement income: choose how many months are in the blob */}
+              {isBankIncome && (
+                <div className="mt-3 rounded-lg border border-brand/30 bg-brand-tint px-3 py-2.5">
+                  <p className="text-xs font-semibold text-ink-700">Statement period</p>
+                  <p className="mb-2 text-[11px] text-ink-500">
+                    Upload a blob of monthly statements. Income = average eligible deposits ÷ months.
+                  </p>
+                  <div className="flex gap-2">
+                    {[12, 24].map((m) => (
+                      <button
+                        key={m}
+                        onClick={() => setMonths(m)}
+                        className={`rounded-lg border px-3 py-1.5 text-sm font-semibold transition ${
+                          months === m
+                            ? "border-brand bg-surface text-brand"
+                            : "border-ink-300 bg-surface text-ink-600 hover:border-ink-400"
+                        }`}
+                      >
+                        {m} months
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
             <p className="mt-2 text-[11px] text-ink-400">
-              Mock upload — loads a pre-baked sample document. You can add more documents inside the workspace.
+              {isBankIncome
+                ? `Mock upload — generates ${months} monthly statements you can review and adjust.`
+                : "Mock upload — loads a pre-baked sample document. You can add more documents inside the workspace."}
             </p>
           </div>
         </div>
