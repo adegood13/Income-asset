@@ -29,7 +29,10 @@ export function PopoutWindow({ title, onClose, onReturn, children, width = 520, 
 
   useEffect(() => {
     const left = Math.max(0, (window.screen.availWidth ?? 1200) - width - 40);
-    const win = window.open("", "", `width=${width},height=${height},left=${left},top=80`);
+    // `popup=yes` forces a separate OS window (not a browser tab) so panels can
+    // sit side-by-side. width/height/left/top size and place it.
+    const features = `popup=yes,width=${width},height=${height},left=${left},top=80`;
+    const win = window.open("", "", features);
     if (!win) {
       alert("Pop-up blocked. Allow pop-ups for this site to use pop-out panels.");
       onClose();

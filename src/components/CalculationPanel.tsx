@@ -1,6 +1,7 @@
-import { ChevronDown, RefreshCw, Scale, Lock, ExternalLink } from "lucide-react";
+import { ChevronDown, Scale, ExternalLink } from "lucide-react";
 import type { Analysis } from "../types";
 import { Sparkle } from "./Logo";
+import { CalculationLineage } from "./CalculationLineage";
 import { getMethodsForModule, getMethod, GUIDELINE_GROUPS, getGuidelineLabel } from "../mock/rules";
 import { formatMoney } from "../lib/format";
 import { useCountUp } from "../lib/useCountUp";
@@ -12,6 +13,9 @@ interface Props {
   onGuidelineChange: (guidelineId: string) => void;
   onRecalc: () => void;
   onPopOut?: () => void;
+  onPopOutLineage?: () => void;
+  lineagePopped?: boolean;
+  onReturnLineage?: () => void;
 }
 
 export function CalculationPanel({
@@ -21,6 +25,9 @@ export function CalculationPanel({
   onGuidelineChange,
   onRecalc,
   onPopOut,
+  onPopOutLineage,
+  lineagePopped,
+  onReturnLineage,
 }: Props) {
   const methods = getMethodsForModule(analysis.module);
   const currentMethod = getMethod(analysis.method ?? "");
@@ -137,66 +144,15 @@ export function CalculationPanel({
         </div>
       </div>
 
-      {/* Lineage — the audit ledger */}
-      <div className="card flex min-h-0 flex-1 flex-col p-4">
-        <div className="mb-3 flex items-center justify-between">
-          <span className="eyebrow">Calculation lineage</span>
-          <span className="text-[11px] text-ink-400">input · operation · result</span>
-        </div>
-
-        <div className="min-h-0 flex-1 overflow-y-auto pr-1 scroll-thin">
-          {result && result.steps.length > 0 ? (
-            <ol className="relative ml-1.5 border-l border-ink-200">
-              {result.steps.map((step, i) => {
-                const isSub = step.emphasis === "subtotal";
-                const isFlag = step.emphasis === "flag";
-                const last = i === result.steps.length - 1;
-                return (
-                  <li key={i} className="relative pl-4 pb-3 last:pb-0">
-                    <span
-                      className={`absolute -left-[5px] top-1.5 h-2.5 w-2.5 rounded-full border-2 border-white ${
-                        last ? "bg-brand" : isFlag ? "bg-conf-low" : isSub ? "bg-ink-700" : "bg-ink-300"
-                      }`}
-                    />
-                    <div
-                      className={`flex items-start justify-between gap-3 rounded-lg px-2.5 py-1.5 ${
-                        isSub ? "bg-ink-50" : isFlag ? "bg-danger-tint/60" : ""
-                      }`}
-                    >
-                      <div className="min-w-0">
-                        <div className={`text-sm ${isSub || last ? "font-semibold text-navy" : "font-medium text-ink-700"}`}>
-                          {step.label}
-                        </div>
-                        <div className="text-[11px] text-ink-400">{step.detail}</div>
-                      </div>
-                      <div
-                        className={`shrink-0 font-mono text-sm ${
-                          isFlag ? "text-conf-low" : isSub || last ? "font-semibold text-navy" : "text-ink-700"
-                        }`}
-                      >
-                        {step.result < 0 ? `(${formatMoney(Math.abs(step.result), { cents: true })})` : formatMoney(step.result, { cents: true })}
-                      </div>
-                    </div>
-                  </li>
-                );
-              })}
-            </ol>
-          ) : (
-            <p className="py-8 text-center text-sm text-ink-400">
-              No calculation yet. Choose a method and recalculate.
-            </p>
-          )}
-        </div>
-
-        <button
-          onClick={onRecalc}
-          disabled={locked}
-          className="btn-primary mt-4 w-full disabled:cursor-not-allowed"
-        >
-          {locked ? <Lock className="h-4 w-4" /> : <RefreshCw className="h-4 w-4" />}
-          {locked ? "Finalized — locked" : "Recalculate"}
-        </button>
-      </div>
+      {/* Lineage — the audit ledger (extracted so it can pop out on its own) */}
+      <CalculationLineage
+        analysis={analysis}
+        locked={locked}
+        onRecalc={onRecalc}
+        onPopOut={onPopOutLineage}
+        popped={lineagePopped}
+        onReturn={onReturnLineage}
+      />
     </div>
   );
 }

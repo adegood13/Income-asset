@@ -139,7 +139,10 @@ export function openDocumentView(doc: DocumentRecord, reveal: boolean, targetFie
     <div class="foot">AskBobAI prototype · viewed ${formatDateTime(new Date().toISOString())} · synthetic data, not a real document.</div>
   </div></body></html>`;
 
-  const win = window.open("", "_blank");
+  // Open as a separate window (not a tab) so it can sit beside the workspace.
+  const w = 920;
+  const left = Math.max(0, (window.screen.availWidth ?? 1400) - w - 40);
+  const win = window.open("", "", `popup=yes,width=${w},height=1000,left=${left},top=60`);
   if (!win) {
     alert("Pop-up blocked. Allow pop-ups for this site to view source documents.");
     return;
