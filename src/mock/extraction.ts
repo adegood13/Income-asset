@@ -130,15 +130,20 @@ function k1(year: string): DocumentRecord {
 
 function bankStatement(period: string, name: string, acct: string): DocumentRecord {
   return doc("BankStatement", period, [
-    f("Account Holder", name, "identifier", 95, `Statement, ${period}, header`, "Identifiers"),
-    f("Account Number", acct, "identifier", 92, `Statement, ${period}, header`, "Identifiers"),
-    f("Institution", "Harborline Bank", "text", 97, `Statement, ${period}, header`, "Identifiers"),
-    f("Beginning Balance", 41280.55, "financial", 96, `Statement, ${period}, p.1`, "Balances"),
-    f("Ending Balance", 47930.12, "financial", 96, `Statement, ${period}, p.1`, "Balances"),
-    f("Average Daily Balance", 43610.0, "financial", 88, `Statement, ${period}, summary`, "Balances"),
-    f("Large Deposit — 05/14", 12500.0, "financial", 70, `Statement, ${period}, p.2`, "Deposits"),
-    f("Large Deposit — 05/22", 6200.0, "financial", 66, `Statement, ${period}, p.2`, "Deposits"),
-    f("Payroll Deposits (total)", 6476.92, "financial", 90, `Statement, ${period}, p.2`, "Deposits"),
+    f("Account Holder", name, "identifier", 95, `Statement, ${period}, p.1 header`, "Identifiers"),
+    f("Account Number", acct, "identifier", 92, `Statement, ${period}, p.1 header`, "Identifiers"),
+    f("Institution", "Harborline Bank", "text", 97, `Statement, ${period}, p.1 header`, "Identifiers"),
+    f("Beginning Balance", 41280.55, "financial", 96, `Statement, ${period}, p.1 summary`, "Balances"),
+    f("Ending Balance", 47930.12, "financial", 96, `Statement, ${period}, p.1 summary`, "Balances"),
+    f("Average Daily Balance", 43610.0, "financial", 88, `Statement, ${period}, p.1 summary`, "Balances"),
+    // Individual deposit line items — every entry is its own editable field so a
+    // reviewer can adjust any single transaction. (No rolled-up totals.)
+    f("Deposit 05/01 — Payroll, Cascade Logistics", 3238.46, "financial", 95, `Statement, ${period}, p.2 line 3`, "Deposits"),
+    f("Deposit 05/06 — Zelle from J. Rivera", 450.0, "financial", 83, `Statement, ${period}, p.2 line 7`, "Deposits"),
+    f("Large Deposit 05/14 — Mobile check", 12500.0, "financial", 70, `Statement, ${period}, p.2 line 12`, "Deposits"),
+    f("Deposit 05/15 — Payroll, Cascade Logistics", 3238.46, "financial", 94, `Statement, ${period}, p.2 line 14`, "Deposits"),
+    f("Large Deposit 05/22 — Wire transfer", 6200.0, "financial", 66, `Statement, ${period}, p.2 line 19`, "Deposits"),
+    f("Deposit 05/28 — Transfer from savings", 900.0, "financial", 78, `Statement, ${period}, p.2 line 23`, "Deposits"),
   ]);
 }
 

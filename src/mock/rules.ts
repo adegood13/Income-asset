@@ -298,7 +298,7 @@ const largeDepositNet: MethodDef = {
       const amt = asNumber(flag.value);
       net -= amt;
       steps.push({
-        label: `− Flagged: ${flag.label.replace("Large Deposit — ", "deposit ")}`,
+        label: `− Flagged: ${flag.label.replace(/^Large Deposit /, "")}`,
         detail: "Large deposit, source not documented",
         result: -amt,
         emphasis: "flag",
