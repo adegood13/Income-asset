@@ -73,7 +73,7 @@ export function DataPointsPanel({ analysisId, doc, locked, onView, onPopOut }: P
               <ExternalLink className="h-4 w-4" />
             </button>
           )}
-          <ConfidenceBadge value={doc.overallConfidence} size="md" showLabel />
+          <ConfidenceBadge value={doc.overallConfidence} size="md" />
         </div>
       </div>
 
