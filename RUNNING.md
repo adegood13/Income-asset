@@ -85,10 +85,12 @@ browser's **localStorage**, so it survives a refresh. To start over, go to
 6. **Settings** (tabbed, fully built out for demo; edits gated to the **Admin**
    role — switch via the avatar menu):
    - **Access** — your role + permissions.
-   - **Calculation rules** — rename or enable/disable built-in income & asset
-     methods, **create new custom methods** from templates (bank-statement expense
-     factor, deposit balance factor, retirement haircut — each computes), and
-     toggle guideline overlays. All changes apply live in the workspace.
+   - **Calculation rules** — rename/enable/disable built-ins, **write your own
+     formula methods** (e.g. `sum("Deposits") / months` or
+     `(sum("Net Profit") + sum("Depreciation")) / 12`), fork any built-in into an
+     editable formula, add template methods, and toggle guideline overlays. The
+     formula language: `sum("text")` (totals matching fields/groups), `months`
+     (document count), numbers, and `+ - * / ( )`. All changes apply live.
    - **Users & roles** — mock user directory (invite, assign role, enable/disable,
      remove) + a roles × permissions matrix.
    - **Tenant** — org name, data residency, session timeout, enforce-SSO.

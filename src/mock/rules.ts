@@ -20,6 +20,7 @@ import type {
 } from "../types";
 import { asNumber, formatMoney, formatNumber } from "../lib/format";
 import type { CustomMethod, CustomMethodKind } from "./config";
+import { evaluateFormula } from "./formula";
 
 interface MethodDef {
   id: string;
@@ -512,6 +513,10 @@ function kindMeta(kind: CustomMethodKind) {
 }
 
 function computeCustom(cm: CustomMethod, docs: DocumentRecord[]): CalculationResult {
+  if (cm.kind === "formula") {
+    const r = evaluateFormula(cm.formula ?? "", docs);
+    return { method: cm.id, methodLabel: cm.label, monthlyQualifying: r.value, steps: r.steps };
+  }
   const f = cm.factorPct / 100;
   if (cm.kind === "bank_income_factor") {
     const stmts = docs.filter((d) => d.docType === "BankStatement");
@@ -555,6 +560,16 @@ function computeCustom(cm: CustomMethod, docs: DocumentRecord[]): CalculationRes
 }
 
 function buildCustomMethod(cm: CustomMethod): MethodDef {
+  if (cm.kind === "formula") {
+    return {
+      id: cm.id,
+      label: cm.label,
+      module: cm.module,
+      appliesTo: undefined, // formula methods apply to any document in the module
+      blurb: `Formula · ${cm.formula ?? ""}`,
+      compute: (docs) => computeCustom(cm, docs),
+    };
+  }
   const meta = kindMeta(cm.kind);
   return {
     id: cm.id,
@@ -565,6 +580,24 @@ function buildCustomMethod(cm: CustomMethod): MethodDef {
     compute: (docs) => computeCustom(cm, docs),
   };
 }
+
+// Representative formulas for the built-in methods, so an admin can fork any of
+// them into an editable custom formula ("Duplicate as editable formula").
+export const BUILTIN_FORMULA: Record<string, string> = {
+  w2_2yr_avg: 'sum("Box 1 — Wages") / 12',
+  w2_current: 'sum("Box 1 — Wages") / 12',
+  paystub_ytd: 'sum("YTD Gross") / 5',
+  sch_c_addbacks:
+    '(sum("Net Profit") + sum("Depreciation") + sum("Business Use of Home") + sum("Meals")) / 12',
+  k1_income: '(sum("Ordinary Business Income") + sum("Guaranteed Payments")) / 12',
+  bank_income_personal: 'sum("Deposits") / months',
+  bank_income_business_50: 'sum("Deposits") * 0.5 / months',
+  avg_balance: 'sum("Average Daily Balance")',
+  ending_balance: 'sum("Ending Balance")',
+  large_deposit_net: 'sum("Ending Balance") - sum("Large Deposit")',
+  retirement_haircut_60: '(sum("Vested Balance") - sum("Outstanding Loan")) * 0.6',
+  retirement_haircut_70: '(sum("Vested Balance") - sum("Outstanding Loan")) * 0.7',
+};
 
 // Runtime registry populated from tenant config (Settings).
 let customMethods: MethodDef[] = [];

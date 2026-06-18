@@ -15,14 +15,19 @@ export type DataRegion = "us-east" | "us-west" | "eu" | "ca";
 
 // Admin-defined calculation methods (parameterized templates the rules engine
 // can execute). See CUSTOM_METHOD_KINDS in rules.ts.
-export type CustomMethodKind = "bank_income_factor" | "asset_balance_factor" | "asset_haircut";
+export type CustomMethodKind =
+  | "formula" // free-form math the admin writes (see mock/formula.ts)
+  | "bank_income_factor"
+  | "asset_balance_factor"
+  | "asset_haircut";
 
 export interface CustomMethod {
   id: string;
   label: string;
   module: ModuleKind;
   kind: CustomMethodKind;
-  factorPct: number; // 0–100, meaning depends on kind
+  factorPct: number; // 0–100, meaning depends on kind (unused for "formula")
+  formula?: string; // the written calculation, when kind === "formula"
   enabled: boolean;
 }
 
@@ -96,6 +101,15 @@ export const DEFAULT_CONFIG: AppConfig = {
       module: "income",
       kind: "bank_income_factor",
       factorPct: 35,
+      enabled: true,
+    },
+    {
+      id: "cm_formula_demo",
+      label: "Self-Employed (Sch C add-backs ÷ 24)",
+      module: "income",
+      kind: "formula",
+      factorPct: 0,
+      formula: '(sum("Net Profit") + sum("Depreciation") + sum("Business Use of Home")) / 24',
       enabled: true,
     },
   ],
