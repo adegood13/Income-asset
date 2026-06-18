@@ -1,34 +1,36 @@
-// AskBob wordmark + mark. The mark is a rounded navy tile with a gradient "B"
-// and a green confidence dot — a tiny echo of the product's core idea.
-export function LogoMark({ size = 36 }: { size?: number }) {
+// AskBobAI logo — a sparkle "diamond" mark in AskBob Green paired with the
+// Figtree Extra Bold wordmark. Per brand: the mark is always AskBob Green,
+// the wordmark always Figtree Extra Bold, no effects, no recolor.
+
+export function Sparkle({ size = 16, className, color = "currentColor" }: { size?: number; className?: string; color?: string }) {
+  return (
+    <svg viewBox="0 0 32 32" width={size} height={size} className={className} aria-hidden>
+      <path
+        d="M16 3.5c.9 7.8 4.7 11.6 12.5 12.5C20.7 16.9 16.9 20.7 16 28.5 15.1 20.7 11.3 16.9 3.5 16 11.3 15.1 15.1 11.3 16 3.5Z"
+        fill={color}
+      />
+    </svg>
+  );
+}
+
+export function LogoMark({ size = 38 }: { size?: number }) {
   return (
     <span
-      className="inline-flex shrink-0 items-center justify-center rounded-[10px] bg-navy"
+      className="inline-flex shrink-0 items-center justify-center rounded-[10px] bg-green"
       style={{ width: size, height: size }}
       aria-hidden
     >
-      <svg viewBox="0 0 32 32" width={size * 0.7} height={size * 0.7}>
-        <defs>
-          <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stopColor="#1181DE" />
-            <stop offset="1" stopColor="#1F9AFF" />
-          </linearGradient>
-        </defs>
-        <path
-          d="M8 24V8h6.6c3 0 4.8 1.5 4.8 3.9 0 1.6-.9 2.7-2.4 3.2 1.9.4 3 1.8 3 3.6 0 2.5-2 4.3-5.2 4.3H8Zm3.2-9.3h3c1.3 0 2.1-.7 2.1-1.8s-.8-1.8-2.1-1.8h-3v3.6Zm0 6.4h3.3c1.4 0 2.3-.7 2.3-1.9s-.9-1.9-2.3-1.9h-3.3v3.8Z"
-          fill="url(#bg)"
-        />
-        <circle cx="24.5" cy="22" r="2.6" fill="#0DC159" />
-      </svg>
+      <Sparkle size={size * 0.62} color="#fff" />
     </span>
   );
 }
 
 export function Wordmark({ light = false }: { light?: boolean }) {
   return (
-    <span className={`font-display text-lg font-extrabold tracking-tight ${light ? "text-white" : "text-navy"}`}>
-      Ask<span className="text-brand-bright">Bob</span>
-      <span className={light ? "text-ink-400" : "text-ink-400"}>AI</span>
+    <span
+      className={`font-display text-lg font-extrabold tracking-tight ${light ? "text-white" : "text-ink-900"}`}
+    >
+      AskBob<span className="font-bold text-ink-400">AI</span>
     </span>
   );
 }

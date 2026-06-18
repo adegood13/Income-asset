@@ -46,10 +46,10 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         <LogoMark size={38} />
         <span>
           <span className="block font-display text-lg font-extrabold leading-none tracking-tight text-white">
-            Ask<span className="text-brand-bright">Bob</span>
+            AskBob
           </span>
-          <span className="mt-1 block text-[11px] font-medium uppercase tracking-[0.16em] text-ink-500">
-            Income & Assets
+          <span className="mt-1 block text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-400">
+            Income &amp; Assets
           </span>
         </span>
       </button>

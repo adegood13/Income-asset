@@ -27,10 +27,10 @@ import { downloadCSV } from "../lib/export";
 import { CONFIDENCE_HEX } from "../lib/confidence";
 
 const STATUS_FILL: Record<string, string> = {
-  draft: "#94A6B5",
-  in_review: "#1181DE",
+  draft: "#B5B8BF",
+  in_review: "#1281DE",
   calculated: "#F5A623",
-  finalized: "#0DC159",
+  finalized: "#19D467",
 };
 
 export function Reports() {
@@ -85,7 +85,9 @@ export function Reports() {
         <div>
           <p className="eyebrow">Analytics</p>
           <h1 className="mt-1 text-2xl font-bold text-navy">Reports</h1>
-          <p className="mt-1 text-sm text-ink-500">Throughput, confidence, and override trends across the queue.</p>
+          <p className="mt-1 text-sm text-ink-600">
+            Throughput, confidence, and overrides, <span className="serif-accent text-brand">at a glance</span>.
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1 rounded-lg border border-ink-200 bg-white p-1">
@@ -169,9 +171,9 @@ export function Reports() {
               <Line
                 type="monotone"
                 dataKey="rate"
-                stroke="#1181DE"
+                stroke="#1281DE"
                 strokeWidth={2.5}
-                dot={{ r: 3, fill: "#1181DE" }}
+                dot={{ r: 3, fill: "#1281DE" }}
                 activeDot={{ r: 5 }}
               />
             </LineChart>
@@ -187,8 +189,8 @@ export function Reports() {
               <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: "#94A6B5" }} axisLine={false} tickLine={false} unit="h" />
               <Tooltip cursor={{ fill: "#F7F9FB" }} contentStyle={tooltipStyle} formatter={(v) => [`${v} h`, "Avg turn time"]} />
               <Bar dataKey="hours" radius={[6, 6, 0, 0]} maxBarSize={80}>
-                <Cell fill="#1181DE" />
-                <Cell fill="#0DC159" />
+                <Cell fill="#1281DE" />
+                <Cell fill="#19D467" />
               </Bar>
             </BarChart>
           </ResponsiveContainer>

@@ -35,7 +35,9 @@ export function Dashboard() {
         <div>
           <p className="eyebrow">Workspace</p>
           <h1 className="mt-1 text-2xl font-bold text-navy">Dashboard</h1>
-          <p className="mt-1 text-sm text-ink-500">Income and asset analyses across your queue.</p>
+          <p className="mt-1 text-sm text-ink-600">
+            Every income and asset analysis, <span className="serif-accent text-brand">clearly</span> answered.
+          </p>
         </div>
         <button className="btn-primary" onClick={() => setModalOpen(true)}>
           <Plus className="h-4 w-4" />

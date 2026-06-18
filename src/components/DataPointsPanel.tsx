@@ -59,7 +59,7 @@ export function DataPointsPanel({ analysisId, doc, locked }: Props) {
         <span>
           Assist mode — every value below is editable.{" "}
           {lowCount > 0 ? (
-            <span className="font-semibold text-[#B42B30]">{lowCount} low-confidence field{lowCount === 1 ? "" : "s"} need a look.</span>
+            <span className="font-semibold text-danger">{lowCount} low-confidence field{lowCount === 1 ? "" : "s"} need a look.</span>
           ) : (
             <span className="font-semibold text-green-deep">No low-confidence fields.</span>
           )}

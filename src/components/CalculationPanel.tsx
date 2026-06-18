@@ -1,5 +1,6 @@
 import { ChevronDown, RefreshCw, Scale, Lock } from "lucide-react";
 import type { Analysis } from "../types";
+import { Sparkle } from "./Logo";
 import { getMethodsForModule, getMethod } from "../mock/rules";
 import { formatMoney } from "../lib/format";
 import { useCountUp } from "../lib/useCountUp";
@@ -20,28 +21,24 @@ export function CalculationPanel({ analysis, locked, onMethodChange, onRecalc }:
 
   return (
     <div className="flex h-full flex-col gap-4">
-      {/* Hero result */}
-      <div className="overflow-hidden rounded-2xl border border-navy/10 bg-navy text-white shadow-card">
-        <div className="px-5 pt-5">
+      {/* Hero result — white figure on the AskBob sky gradient */}
+      <div className="relative overflow-hidden rounded-2xl bg-brand-gradient text-white shadow-lift">
+        {/* faint sparkle motif, decorative */}
+        <Sparkle size={150} color="#ffffff" className="pointer-events-none absolute -right-8 -top-10 opacity-[0.08]" />
+        <div className="relative px-5 py-5">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-400">
+            <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-white/75">
               {resultLabel}
             </span>
-            {analysis.module === "income" ? (
-              <span className="text-[11px] text-ink-500">/ month</span>
-            ) : (
-              <span className="text-[11px] text-ink-500">total</span>
-            )}
+            <span className="text-[11px] text-white/70">
+              {analysis.module === "income" ? "/ month" : "total"}
+            </span>
           </div>
           <div className="mt-1.5 font-mono text-[40px] font-semibold leading-none tracking-tight">
             {result ? formatMoney(animated) : "—"}
           </div>
-          {currentMethod && (
-            <p className="mt-2 text-xs text-ink-400">{currentMethod.label}</p>
-          )}
+          {currentMethod && <p className="mt-2 text-xs text-white/80">{currentMethod.label}</p>}
         </div>
-        {/* gradient hairline */}
-        <div className="mt-4 h-1 w-full bg-brand-gradient" />
       </div>
 
       {/* Method selector */}
@@ -107,7 +104,7 @@ export function CalculationPanel({ analysis, locked, onMethodChange, onRecalc }:
                     />
                     <div
                       className={`flex items-start justify-between gap-3 rounded-lg px-2.5 py-1.5 ${
-                        isSub ? "bg-ink-50" : isFlag ? "bg-[#FDECEC]/60" : ""
+                        isSub ? "bg-ink-50" : isFlag ? "bg-danger-tint/60" : ""
                       }`}
                     >
                       <div className="min-w-0">

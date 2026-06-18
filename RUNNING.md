@@ -70,8 +70,17 @@ replaces it with.
 
 Vite + React + TypeScript, Tailwind CSS, `recharts` (charts), `lucide-react`
 (icons). React state + `localStorage` for persistence — no state-management
-library. Brand follows the AskBobAI tokens (Figtree / Inter / Fragment Mono;
-brand blue, green, navy; confidence green/amber/red).
+library.
+
+Visuals follow the **AskBobAI Brand Guide (Edition 01, 2026)**:
+
+- **Type** — Figtree carries the system (display + body); Instrument Serif
+  italic for single-word accents; JetBrains Mono / Consolas for data & metadata.
+- **Color** — AskBob Blue `#1281DE` carries the mood (sky-gradient hero
+  surfaces), Ink `#0A0A0A` / Night Ink `#151922` carry the message, and AskBob
+  Green `#19D467` marks the moment of action (CTAs only). Brand red `#A92922`
+  for errors. Confidence scale: green / amber / red.
+- **Logo** — sparkle mark in AskBob Green + Figtree Extra Bold wordmark.
 
 ## Project layout
 

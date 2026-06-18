@@ -86,27 +86,26 @@ export function openPrintableWorksheet(analysis: Analysis, reveal: boolean) {
   const html = `<!doctype html><html><head><meta charset="utf-8"/>
   <title>${analysis.loanNumber} · Worksheet</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Figtree:wght@600;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;800&family=JetBrains+Mono:wght@500&display=swap');
     * { box-sizing: border-box; }
-    body { font-family: Inter, system-ui, sans-serif; color: #1F2A33; margin: 40px; }
-    h1, h2, h3 { font-family: Figtree, sans-serif; color: #001E2B; }
+    body { font-family: Figtree, system-ui, sans-serif; color: #1F232B; margin: 40px; }
+    h1, h2, h3 { font-family: Figtree, sans-serif; color: #0A0A0A; }
     h1 { font-size: 22px; margin: 0; }
-    .head { display:flex; justify-content:space-between; align-items:flex-start; border-bottom:3px solid #1181DE; padding-bottom:16px; margin-bottom:20px; }
-    .brand { font-family: Figtree; font-weight: 800; font-size: 20px; color:#001E2B; }
-    .brand span { color:#1F9AFF; }
-    .mono { font-family: 'IBM Plex Mono', monospace; }
-    .muted { color:#647888; font-weight:400; }
+    .head { display:flex; justify-content:space-between; align-items:flex-start; border-bottom:3px solid #1281DE; padding-bottom:16px; margin-bottom:20px; }
+    .brand { font-family: Figtree; font-weight: 800; font-size: 20px; color:#0A0A0A; }
+    .mono { font-family: 'JetBrains Mono', Consolas, monospace; }
+    .muted { color:#6A6A6A; font-weight:400; }
     .hero { background:#EDF7FF; border:1px solid #cfe6fb; border-radius:12px; padding:18px 22px; margin:18px 0; }
-    .hero .label { font-size:12px; text-transform:uppercase; letter-spacing:.12em; color:#475866; }
-    .hero .num { font-family:'IBM Plex Mono', monospace; font-size:34px; font-weight:600; color:#001E2B; }
+    .hero .label { font-size:12px; text-transform:uppercase; letter-spacing:.12em; color:#3A3D44; }
+    .hero .num { font-family:'JetBrains Mono', Consolas, monospace; font-size:34px; font-weight:600; color:#0A0A0A; }
     table { width:100%; border-collapse:collapse; margin:8px 0 4px; font-size:13px; }
-    th { text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:#647888; border-bottom:1px solid #E0E7EE; padding:6px 8px; }
+    th { text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:#6A6A6A; border-bottom:1px solid #E6E8EC; padding:6px 8px; }
     td { padding:6px 8px; border-bottom:1px solid #EEF2F6; vertical-align:top; }
     .prov { color:#94A6B5; font-size:11px; }
     .ov { color:#9A6300; font-size:11px; }
     section { margin-bottom:18px; break-inside: avoid; }
     ul { padding-left:18px; } li { margin-bottom:8px; font-size:13px; }
-    .meta { font-size:13px; color:#475866; }
+    .meta { font-size:13px; color:#3A3D44; }
     .foot { margin-top:28px; padding-top:12px; border-top:1px solid #E0E7EE; font-size:11px; color:#94A6B5; }
     @media print { body { margin: 20px; } }
   </style></head>
