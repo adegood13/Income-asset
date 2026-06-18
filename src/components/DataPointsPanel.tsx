@@ -1,4 +1,4 @@
-import { Sparkles } from "lucide-react";
+import { Sparkles, FileSearch, ExternalLink } from "lucide-react";
 import type { DocumentRecord } from "../types";
 import { FieldRow } from "./FieldRow";
 import { ConfidenceBadge } from "./ConfidenceBadge";
@@ -9,6 +9,8 @@ interface Props {
   analysisId: string;
   doc: DocumentRecord;
   locked: boolean;
+  onView?: () => void;
+  onPopOut?: () => void;
 }
 
 // Stable group ordering across both modules.
@@ -30,14 +32,14 @@ function groupFields(doc: DocumentRecord) {
   );
 }
 
-export function DataPointsPanel({ analysisId, doc, locked }: Props) {
+export function DataPointsPanel({ analysisId, doc, locked, onView, onPopOut }: Props) {
   const groups = groupFields(doc);
   const lowCount = doc.fields.filter((f) => f.confidence < 70).length;
 
   return (
     <div className="flex h-full flex-col">
       {/* Document header */}
-      <div className="flex items-center justify-between gap-3 border-b border-ink-200 px-1 pb-3">
+      <div className="flex items-start justify-between gap-3 border-b border-ink-200 px-1 pb-3">
         <div className="flex items-center gap-3">
           <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-navy text-white">
             <DocIcon type={doc.docType} className="h-5 w-5" />
@@ -45,10 +47,29 @@ export function DataPointsPanel({ analysisId, doc, locked }: Props) {
           <div>
             <h2 className="text-base font-bold text-navy">{DOC_TYPE_LABEL[doc.docType]}</h2>
             <p className="text-xs text-ink-500">{doc.periodLabel} · captured by extraction</p>
+            {onView && (
+              <button
+                onClick={onView}
+                className="mt-1 inline-flex items-center gap-1.5 text-xs font-semibold text-brand transition hover:text-brand-deep hover:underline"
+                title="View the source document used for this calculation"
+              >
+                <FileSearch className="h-3.5 w-3.5" />
+                View source document
+              </button>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <span className="hidden text-xs text-ink-400 sm:inline">Overall</span>
+          {onPopOut && (
+            <button
+              onClick={onPopOut}
+              className="rounded-md p-1.5 text-ink-400 transition hover:bg-ink-100 hover:text-ink-700"
+              title="Pop out into a separate window"
+              aria-label="Pop out data points panel"
+            >
+              <ExternalLink className="h-4 w-4" />
+            </button>
+          )}
           <ConfidenceBadge value={doc.overallConfidence} size="md" showLabel />
         </div>
       </div>

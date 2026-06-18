@@ -46,7 +46,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         <LogoMark size={38} />
         <span>
           <span className="block font-display text-lg font-extrabold leading-none tracking-tight text-white">
-            AskBob
+            AskBob<span className="text-ink-400">AI</span>
           </span>
           <span className="mt-1 block text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-400">
             Income &amp; Assets

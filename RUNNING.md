@@ -36,14 +36,25 @@ browser's **localStorage**, so it survives a refresh. To start over, go to
 2. **New analysis** → pick Income or Asset, auto-generate or type a loan number,
    "upload" a sample document (mock ~1s extraction), and land in the workspace.
 3. **Workspace** (the centerpiece, three columns):
-   - *Documents* (left) — switch between attached docs, add another.
+   - *Documents* (left) — switch between attached docs, add another, and open
+     the **source document** (the 🔎 icon, or "View source document" in the
+     center header) — a labelled facsimile of the page used for the calculation.
    - *Data points* (center) — every captured field with a **confidence badge**,
      a provenance hint, and an editable value. Edit a financial field and watch
      it flag as **overridden** (with a "was…" original and a reset). Add a
      per-field note. Identifier fields are masked until you toggle PII reveal.
    - *Calculation* (right) — the qualifying figure, a **method dropdown** (switch
      it and the number + lineage change), the **step-by-step audit lineage**,
-     Recalculate, and a disabled "Apply agency guidelines · Coming soon" stub.
+     Recalculate, and a **live agency/investor guideline selector** (all agencies
+     + 5 Non-QM investors). The selector works; the "Coming soon" toggle beside
+     it shows the overlay rules aren't applied to the math yet — see
+     `GUIDELINE_GROUPS` in `src/mock/rules.ts`.
+   - **Resize the columns** — drag the dividers between columns (desktop ≥1280px);
+     widths persist to `localStorage`.
+   - **Pop out a panel** — the ⤢ icon on each panel opens it in a separate
+     browser window (shares live state, so edits stay in sync) for side-by-side
+     comparison across monitors. Close the window or click "Return" to re-dock.
+     *(Allow pop-ups for the site.)*
    - Header actions: **Save**, **Finalize** (locks the analysis), **Export**
      (printable worksheet or JSON), and an append-only **Notes** drawer.
 4. **PII mask toggle** (top bar) — flips identifier masking everywhere. Off by
@@ -53,7 +64,7 @@ browser's **localStorage**, so it survives a refresh. To start over, go to
    export.
 6. **Settings** → placeholder list of areas "configured by engineering".
 
-## The four mock "seams" (engineering handoff)
+## The mock "seams" (engineering handoff)
 
 Each file below is the single, clearly-labeled place where the prototype fakes a
 production system. Each starts with a comment block describing what production
@@ -62,9 +73,10 @@ replaces it with.
 | Seam | File | What it fakes | Production replaces with |
 |------|------|---------------|--------------------------|
 | 1 | `src/mock/extraction.ts` | Document upload + OCR + field extraction. Returns pre-baked `DocumentRecord`s with per-field confidence. | The real extraction API. |
-| 2 | `src/mock/rules.ts` | Calculation. Hardcoded methods that read field values and return a `CalculationResult` whose `steps[]` are the audit lineage. | The real versioned, per-tenant rules engine. |
+| 2 | `src/mock/rules.ts` | Calculation methods + the agency/investor guideline list (`GUIDELINE_GROUPS`). Returns a `CalculationResult` whose `steps[]` are the audit lineage. | The real versioned, per-tenant rules engine with guideline overlays. |
 | 3 | `src/mock/tokenization.ts` | PII masking for identifier fields + the global reveal toggle. | The real tokenization vault + detokenization service. |
 | 4 | `src/mock/store.ts` | `localStorage`-backed persistence for analyses and notes (seeded from `src/mock/seed.ts`). | The real backend, append-only audit store, and auth. |
+| 5 | `src/mock/documentViewer.ts` | "View source document" — renders a facsimile of the captured page in a new tab. | A link to the original stored PDF/image (signed URL) with field regions overlaid. |
 
 ## Tech stack
 
