@@ -29,6 +29,7 @@ export function turnTimeByModule(analyses: Analysis[]): { module: string; hours:
   const acc: Record<string, { sum: number; n: number }> = {
     income: { sum: 0, n: 0 },
     asset: { sum: 0, n: 0 },
+    dscr: { sum: 0, n: 0 },
   };
   for (const a of analyses) {
     const hrs = (new Date(a.updatedAt).getTime() - new Date(a.createdAt).getTime()) / 3_600_000;
@@ -38,6 +39,7 @@ export function turnTimeByModule(analyses: Analysis[]): { module: string; hours:
   return [
     { module: "Income", hours: acc.income.n ? Math.round(acc.income.sum / acc.income.n) : 0 },
     { module: "Asset", hours: acc.asset.n ? Math.round(acc.asset.sum / acc.asset.n) : 0 },
+    { module: "DSCR", hours: acc.dscr.n ? Math.round(acc.dscr.sum / acc.dscr.n) : 0 },
   ];
 }
 

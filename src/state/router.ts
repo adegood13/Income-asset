@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 
 export type Route =
   | { name: "dashboard" }
-  | { name: "list"; module: "income" | "asset" }
+  | { name: "list"; module: "income" | "asset" | "dscr" }
   | { name: "analysis"; id: string }
   | { name: "reports" }
   | { name: "settings" };
@@ -24,6 +24,8 @@ function parse(hash: string): Route {
       return { name: "list", module: "income" };
     case "asset":
       return { name: "list", module: "asset" };
+    case "dscr":
+      return { name: "list", module: "dscr" };
     case "analysis":
       return parts[1] ? { name: "analysis", id: parts[1] } : { name: "dashboard" };
     case "reports":

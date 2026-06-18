@@ -1,4 +1,4 @@
-import { LayoutDashboard, Banknote, PiggyBank, BarChart3, Settings, FlaskConical } from "lucide-react";
+import { LayoutDashboard, Banknote, PiggyBank, Home, BarChart3, Settings, FlaskConical } from "lucide-react";
 import { navigate, useRoute, type Route } from "../state/router";
 import { LogoMark } from "./Logo";
 
@@ -22,6 +22,12 @@ const NAV: NavItem[] = [
     icon: PiggyBank,
     path: "/asset",
     match: (r) => r.name === "list" && r.module === "asset",
+  },
+  {
+    label: "DSCR Analysis",
+    icon: Home,
+    path: "/dscr",
+    match: (r) => r.name === "list" && r.module === "dscr",
   },
   { label: "Reports", icon: BarChart3, path: "/reports", match: (r) => r.name === "reports" },
   { label: "Settings", icon: Settings, path: "/settings", match: (r) => r.name === "settings" },

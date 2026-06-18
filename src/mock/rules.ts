@@ -443,6 +443,84 @@ function retirementHaircut(rate: number): MethodDef {
 const retirement60 = retirementHaircut(0.6);
 const retirement70 = retirementHaircut(0.7);
 
+/* ------------------------------- DSCR methods ----------------------------- */
+// Debt Service Coverage Ratio for investment property: rent ÷ PITIA debt
+// service. Result is a ratio (e.g. 1.27), not a dollar amount.
+
+const PITIA_GROUP = "Debt service (PITIA)";
+
+function pitiaTotal(docs: DocumentRecord[]): number {
+  return allFields(docs)
+    .filter((x) => x.group === PITIA_GROUP && !x.excluded)
+    .reduce((a, x) => a + asNumber(x.value), 0);
+}
+function pitiaSteps(docs: DocumentRecord[]): CalcStep[] {
+  return allFields(docs)
+    .filter((x) => x.group === PITIA_GROUP && !x.excluded)
+    .map((x) => ({ label: `· ${x.label}`, detail: "monthly", result: asNumber(x.value) }));
+}
+
+function dscrFrom(id: string, label: string, rent: number, rentLabel: string, docs: DocumentRecord[]): CalculationResult {
+  const debt = pitiaTotal(docs);
+  const ratio = debt ? rent / debt : 0;
+  const steps: CalcStep[] = [
+    { label: rentLabel, detail: "Gross monthly rent", result: round2(rent) },
+    ...pitiaSteps(docs),
+    { label: "Total PITIA debt service", detail: "Principal, interest, taxes, insurance, HOA", result: round2(debt), emphasis: "subtotal" },
+    {
+      label: "DSCR = rent ÷ PITIA",
+      detail: `${formatMoney(rent)} ÷ ${formatMoney(debt)}`,
+      result: round2(ratio),
+      unit: "ratio",
+      emphasis: "subtotal",
+    },
+  ];
+  return { method: id, methodLabel: label, monthlyQualifying: round2(ratio), steps };
+}
+
+const dscrLease: MethodDef = {
+  id: "dscr_lease",
+  label: "DSCR — Lease Rent ÷ PITIA",
+  module: "dscr",
+  appliesTo: ["LeaseAgreement", "OperatingStatement"],
+  blurb: "In-place lease rent divided by monthly PITIA debt service.",
+  compute: (docs) => dscrFrom(dscrLease.id, dscrLease.label, num(findField(docs, "Monthly Rent")), "Lease rent", docs),
+};
+
+const dscrMarket: MethodDef = {
+  id: "dscr_market",
+  label: "DSCR — Market Rent (1007) ÷ PITIA",
+  module: "dscr",
+  appliesTo: ["RentSchedule", "OperatingStatement"],
+  blurb: "Form 1007 market rent divided by monthly PITIA debt service.",
+  compute: (docs) => dscrFrom(dscrMarket.id, dscrMarket.label, num(findField(docs, "Market Rent")), "Market rent (1007)", docs),
+};
+
+const dscrNet: MethodDef = {
+  id: "dscr_net",
+  label: "DSCR — Vacancy-adjusted ÷ PITIA",
+  module: "dscr",
+  appliesTo: ["LeaseAgreement", "OperatingStatement"],
+  blurb: "Lease rent less a vacancy factor, divided by monthly PITIA.",
+  compute: (docs) => {
+    const gross = num(findField(docs, "Monthly Rent"));
+    const vacField = findField(docs, "Vacancy");
+    const vac = vacField ? asNumber(vacField.value) / 100 : 0;
+    const effective = gross * (1 - vac);
+    const debt = pitiaTotal(docs);
+    const ratio = debt ? effective / debt : 0;
+    const steps: CalcStep[] = [
+      { label: "Gross monthly rent", detail: "Lease", result: round2(gross) },
+      { label: `− Vacancy factor ${Math.round(vac * 100)}%`, detail: "Underwriting assumption", result: -round2(gross * vac), emphasis: "flag" },
+      { label: "Effective rent", detail: `${formatMoney(gross)} × ${100 - Math.round(vac * 100)}%`, result: round2(effective), emphasis: "subtotal" },
+      ...pitiaSteps(docs),
+      { label: "Total PITIA debt service", detail: "Monthly", result: round2(debt), emphasis: "subtotal" },
+      { label: "DSCR = effective rent ÷ PITIA", detail: `${formatMoney(effective)} ÷ ${formatMoney(debt)}`, result: round2(ratio), unit: "ratio", emphasis: "subtotal" },
+    ];
+    return { method: dscrNet.id, methodLabel: dscrNet.label, monthlyQualifying: round2(ratio), steps };
+  },
+};
+
 /* ------------------------------- registry --------------------------------- */
 
 export const INCOME_METHODS: MethodDef[] = [
@@ -463,7 +541,15 @@ export const ASSET_METHODS: MethodDef[] = [
   retirement70,
 ];
 
-const ALL_METHODS = [...INCOME_METHODS, ...ASSET_METHODS];
+export const DSCR_METHODS: MethodDef[] = [dscrLease, dscrMarket, dscrNet];
+
+const ALL_METHODS = [...INCOME_METHODS, ...ASSET_METHODS, ...DSCR_METHODS];
+
+function moduleMethods(module: ModuleKind): MethodDef[] {
+  if (module === "income") return INCOME_METHODS;
+  if (module === "asset") return ASSET_METHODS;
+  return DSCR_METHODS;
+}
 
 /* ----------------------- Admin-defined custom methods --------------------- */
 // Parameterized method templates an admin can create/edit in Settings. The
@@ -597,6 +683,9 @@ export const BUILTIN_FORMULA: Record<string, string> = {
   large_deposit_net: 'sum("Ending Balance") - sum("Large Deposit")',
   retirement_haircut_60: '(sum("Vested Balance") - sum("Outstanding Loan")) * 0.6',
   retirement_haircut_70: '(sum("Vested Balance") - sum("Outstanding Loan")) * 0.7',
+  dscr_lease: 'sum("Monthly Rent") / sum("Debt service (PITIA)")',
+  dscr_market: 'sum("Market Rent") / sum("Debt service (PITIA)")',
+  dscr_net: 'sum("Monthly Rent") * 0.95 / sum("Debt service (PITIA)")',
 };
 
 // Runtime registry populated from tenant config (Settings).
@@ -621,7 +710,7 @@ function findAnyMethod(id: string): MethodDef | undefined {
 // present (so a bank-statement income analysis shows bank-statement methods,
 // not W-2 methods, and vice versa). Includes admin-defined custom methods.
 export function getMethodsForModule(module: ModuleKind, docs?: DocumentRecord[]): MethodDef[] {
-  const base = module === "income" ? INCOME_METHODS : ASSET_METHODS;
+  const base = moduleMethods(module);
   const all = [...base, ...customMethods.filter((m) => m.module === module)];
   let list = all;
   if (docs && docs.length > 0) {
@@ -647,6 +736,11 @@ export function defaultMethodFor(module: ModuleKind, docs: DocumentRecord[]): st
     if (types.has("Paystub")) return paystubYtd.id;
     if (types.has("BankStatement")) return bankIncomePersonal.id;
     return w2TwoYearAverage.id;
+  }
+  if (module === "dscr") {
+    if (types.has("LeaseAgreement")) return dscrLease.id;
+    if (types.has("RentSchedule")) return dscrMarket.id;
+    return dscrLease.id;
   }
   if (types.has("InvestmentStatement") && !types.has("BankStatement")) return retirement60.id;
   return avgBalance.id;

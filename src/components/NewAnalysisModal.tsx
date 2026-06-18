@@ -1,14 +1,13 @@
 import { useState } from "react";
-import { Banknote, PiggyBank, RefreshCw, UploadCloud, Loader2, FileCheck2 } from "lucide-react";
+import { Banknote, PiggyBank, Home, RefreshCw, UploadCloud, Loader2, FileCheck2 } from "lucide-react";
 import type { DocType, ModuleKind } from "../types";
 import { Modal } from "./Modal";
 import { DocIcon } from "./DocIcon";
 import { useApp } from "../state/AppContext";
 import { navigate } from "../state/router";
 import {
-  ASSET_DOC_TYPES,
   DOC_TYPE_LABEL,
-  INCOME_DOC_TYPES,
+  docTypesForModule,
   extractDocument,
   extractBankStatementBundleAsync,
 } from "../mock/extraction";
@@ -30,7 +29,7 @@ export function NewAnalysisModal({ open, onClose, defaultModule = "income" }: Pr
   const [months, setMonths] = useState(12);
   const [phase, setPhase] = useState<Phase>("configure");
 
-  const docTypes = module === "income" ? INCOME_DOC_TYPES : ASSET_DOC_TYPES;
+  const docTypes = docTypesForModule(module);
   // Bank statements in the income module = the 12–24 month income bundle.
   const isBankIncome = module === "income" && docType === "BankStatement";
 
@@ -117,7 +116,7 @@ export function NewAnalysisModal({ open, onClose, defaultModule = "income" }: Pr
           {/* Module */}
           <div>
             <label className="eyebrow mb-2 block">Module</label>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <ModuleCard
                 active={module === "income"}
                 icon={<Banknote className="h-5 w-5" />}
@@ -131,6 +130,13 @@ export function NewAnalysisModal({ open, onClose, defaultModule = "income" }: Pr
                 title="Asset"
                 desc="Bank & investment statements"
                 onClick={() => switchModule("asset")}
+              />
+              <ModuleCard
+                active={module === "dscr"}
+                icon={<Home className="h-5 w-5" />}
+                title="DSCR"
+                desc="Lease, 1007, PITIA"
+                onClick={() => switchModule("dscr")}
               />
             </div>
           </div>

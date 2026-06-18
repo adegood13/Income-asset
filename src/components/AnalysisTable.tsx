@@ -1,4 +1,4 @@
-import { ArrowUpRight, Banknote, PiggyBank, PenLine } from "lucide-react";
+import { ArrowUpRight, PenLine } from "lucide-react";
 import type { Analysis } from "../types";
 import { StatusChip } from "./StatusChip";
 import { ConfidenceDot } from "./ConfidenceBadge";
@@ -6,6 +6,7 @@ import { MaskedText } from "./MaskedValue";
 import { navigate } from "../state/router";
 import { avgConfidence, overrideCount } from "../lib/analytics";
 import { relativeTime } from "../lib/format";
+import { MODULE_LABEL, MODULE_ICON } from "../lib/modules";
 
 export function AnalysisTable({ analyses }: { analyses: Analysis[] }) {
   if (analyses.length === 0) {
@@ -50,12 +51,11 @@ export function AnalysisTable({ analyses }: { analyses: Analysis[] }) {
                   </td>
                   <td className="px-4 py-3">
                     <span className="inline-flex items-center gap-1.5 text-ink-600">
-                      {a.module === "income" ? (
-                        <Banknote className="h-4 w-4 text-ink-400" />
-                      ) : (
-                        <PiggyBank className="h-4 w-4 text-ink-400" />
-                      )}
-                      {a.module === "income" ? "Income" : "Asset"}
+                      {(() => {
+                        const Icon = MODULE_ICON[a.module];
+                        return <Icon className="h-4 w-4 text-ink-400" />;
+                      })()}
+                      {MODULE_LABEL[a.module]}
                     </span>
                   </td>
                   <td className="px-4 py-3">

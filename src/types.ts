@@ -33,7 +33,10 @@ export type DocType =
   | "K1"
   | "1120S"
   | "BankStatement"
-  | "InvestmentStatement";
+  | "InvestmentStatement"
+  | "LeaseAgreement"
+  | "RentSchedule"
+  | "OperatingStatement";
 
 export interface DocumentRecord {
   id: string;
@@ -49,6 +52,8 @@ export interface CalcStep {
   result: number;
   // Optional flag so the UI can highlight notable lineage rows (e.g. a flag).
   emphasis?: "flag" | "subtotal";
+  // How to render `result`. Defaults to money; DSCR uses "ratio".
+  unit?: "money" | "ratio" | "percent";
 }
 
 export interface CalculationResult {
@@ -67,7 +72,7 @@ export interface Note {
 
 export type AnalysisStatus = "draft" | "in_review" | "calculated" | "finalized";
 
-export type ModuleKind = "income" | "asset";
+export type ModuleKind = "income" | "asset" | "dscr";
 
 export interface Analysis {
   id: string;

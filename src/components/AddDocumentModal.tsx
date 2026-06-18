@@ -4,12 +4,7 @@ import type { DocType, ModuleKind } from "../types";
 import { Modal } from "./Modal";
 import { DocIcon } from "./DocIcon";
 import { useApp } from "../state/AppContext";
-import {
-  ASSET_DOC_TYPES,
-  DOC_TYPE_LABEL,
-  INCOME_DOC_TYPES,
-  extractDocument,
-} from "../mock/extraction";
+import { DOC_TYPE_LABEL, docTypesForModule, extractDocument } from "../mock/extraction";
 
 interface Props {
   open: boolean;
@@ -23,7 +18,7 @@ export function AddDocumentModal({ open, onClose, analysisId, module }: Props) {
   const [docType, setDocType] = useState<DocType | null>(null);
   const [extracting, setExtracting] = useState(false);
 
-  const docTypes = module === "income" ? INCOME_DOC_TYPES : ASSET_DOC_TYPES;
+  const docTypes = docTypesForModule(module);
 
   const close = () => {
     if (extracting) return;

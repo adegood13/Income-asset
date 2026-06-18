@@ -41,8 +41,17 @@ export function CalculationPanel({
   })).filter((g) => g.options.length > 0);
   const currentMethod = getMethod(analysis.method ?? "");
   const result = analysis.result;
-  const resultLabel = analysis.module === "income" ? "Qualifying monthly income" : "Qualifying assets";
+  const isDscr = analysis.module === "dscr";
+  const resultLabel = isDscr
+    ? "Debt service coverage ratio"
+    : analysis.module === "income"
+      ? "Qualifying monthly income"
+      : "Qualifying assets";
+  const unitLabel = isDscr ? "coverage" : analysis.module === "income" ? "/ month" : "total";
   const animated = useCountUp(result?.monthlyQualifying ?? 0);
+  const heroValue = result ? (isDscr ? `${animated.toFixed(2)}×` : formatMoney(animated)) : "—";
+  // DSCR pass/fail vs the conventional 1.00 floor.
+  const dscrPass = isDscr && result ? result.monthlyQualifying >= 1 : false;
 
   return (
     <div className="flex h-full flex-col gap-4">
@@ -65,12 +74,19 @@ export function CalculationPanel({
             <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-white/75">
               {resultLabel}
             </span>
-            <span className="pr-7 text-[11px] text-white/70">
-              {analysis.module === "income" ? "/ month" : "total"}
-            </span>
+            <span className="pr-7 text-[11px] text-white/70">{unitLabel}</span>
           </div>
-          <div className="mt-1.5 font-mono text-[40px] font-semibold leading-none tracking-tight">
-            {result ? formatMoney(animated) : "—"}
+          <div className="mt-1.5 flex items-end gap-3">
+            <div className="font-mono text-[40px] font-semibold leading-none tracking-tight">{heroValue}</div>
+            {isDscr && result && (
+              <span
+                className={`mb-1 rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                  dscrPass ? "bg-green text-navy-900" : "bg-danger text-white"
+                }`}
+              >
+                {dscrPass ? "Qualifies ≥ 1.00" : "Below 1.00"}
+              </span>
+            )}
           </div>
           {currentMethod && <p className="mt-2 text-xs text-white/80">{currentMethod.label}</p>}
         </div>

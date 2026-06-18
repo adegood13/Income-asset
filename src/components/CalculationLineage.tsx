@@ -1,6 +1,15 @@
 import { RefreshCw, Lock, ExternalLink, Undo2, GitBranch } from "lucide-react";
-import type { Analysis } from "../types";
+import type { Analysis, CalcStep } from "../types";
 import { formatMoney } from "../lib/format";
+
+// Render a lineage step's result by its unit (money default, ratio, percent).
+function formatStep(step: CalcStep): string {
+  if (step.unit === "ratio") return `${step.result.toFixed(2)}×`;
+  if (step.unit === "percent") return `${step.result}%`;
+  return step.result < 0
+    ? `(${formatMoney(Math.abs(step.result), { cents: true })})`
+    : formatMoney(step.result, { cents: true });
+}
 
 interface Props {
   analysis: Analysis;
@@ -83,9 +92,7 @@ export function CalculationLineage({ analysis, locked, onRecalc, onPopOut, poppe
                         isFlag ? "text-conf-low" : isSub || last ? "font-semibold text-navy" : "text-ink-700"
                       }`}
                     >
-                      {step.result < 0
-                        ? `(${formatMoney(Math.abs(step.result), { cents: true })})`
-                        : formatMoney(step.result, { cents: true })}
+                      {formatStep(step)}
                     </div>
                   </div>
                 </li>

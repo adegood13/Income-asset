@@ -12,7 +12,7 @@
  * All values here are obviously synthetic. No real SSNs / account numbers.
  * ========================================================================== */
 
-import type { CapturedField, DocType, DocumentRecord, FieldType } from "../types";
+import type { CapturedField, DocType, DocumentRecord, FieldType, ModuleKind } from "../types";
 import { uid } from "../lib/id";
 
 // Small builder so the canonical docs below stay readable.
@@ -160,6 +160,43 @@ function investmentStatement(period: string, name: string, acct: string): Docume
 }
 
 /* -------------------------------------------------------------------------- */
+/* Canonical DSCR documents (investment property)                             */
+/* -------------------------------------------------------------------------- */
+
+const DSCR_ADDRESS = "1420 Birch Ave, Unit 2, Fort Wayne, IN";
+
+function leaseAgreement(): DocumentRecord {
+  return doc("LeaseAgreement", "Lease — 12-month term", [
+    f("Tenant Name", "Taylor Brooks", "identifier", 95, "Lease p.1", "Identifiers"),
+    f("Property Address", DSCR_ADDRESS, "text", 96, "Lease p.1", "Identifiers"),
+    f("Monthly Rent", 2850, "financial", 94, "Lease p.1, rent clause", "Rental income"),
+    f("Lease Term", "12 months", "text", 92, "Lease p.1", "Rental income"),
+    f("Lease Start", "03/01/2026", "text", 90, "Lease p.1", "Rental income"),
+    f("Security Deposit", 2850, "financial", 86, "Lease p.2", "Rental income"),
+  ]);
+}
+
+function rentSchedule1007(): DocumentRecord {
+  return doc("RentSchedule", "Form 1007 — Single-Family Rent", [
+    f("Property Address", DSCR_ADDRESS, "text", 95, "1007 p.1", "Identifiers"),
+    f("Market Rent (fair market)", 2750, "financial", 86, "1007, opinion of market rent", "Rental income"),
+    f("Comparable Rent — Low", 2600, "financial", 76, "1007, comparables", "Rental income"),
+    f("Comparable Rent — High", 2975, "financial", 76, "1007, comparables", "Rental income"),
+  ]);
+}
+
+function operatingStatement(): DocumentRecord {
+  return doc("OperatingStatement", "PITIA — monthly debt service", [
+    f("Property Address", DSCR_ADDRESS, "text", 95, "Loan file", "Identifiers"),
+    f("Principal & Interest", 1620.0, "financial", 97, "Loan estimate, P&I", "Debt service (PITIA)"),
+    f("Property Taxes", 385.0, "financial", 90, "Tax certificate, monthly", "Debt service (PITIA)"),
+    f("Hazard Insurance", 110.0, "financial", 88, "Insurance binder, monthly", "Debt service (PITIA)"),
+    f("HOA / Association Dues", 75.0, "financial", 82, "HOA statement, monthly", "Debt service (PITIA)"),
+    f("Vacancy Factor", "5%", "text", 80, "Underwriting assumption", "Adjustments"),
+  ]);
+}
+
+/* -------------------------------------------------------------------------- */
 /* Bank statement INCOME bundle — 12 to 24 monthly statements                 */
 /* -------------------------------------------------------------------------- */
 
@@ -231,6 +268,13 @@ export function extractBankStatementBundleAsync(months: number): Promise<Documen
 // the 12–24 month bank-statement-income bundle (handled in NewAnalysisModal).
 export const INCOME_DOC_TYPES: DocType[] = ["W2", "Paystub", "1040", "ScheduleC", "ScheduleE", "K1", "BankStatement"];
 export const ASSET_DOC_TYPES: DocType[] = ["BankStatement", "InvestmentStatement"];
+export const DSCR_DOC_TYPES: DocType[] = ["LeaseAgreement", "RentSchedule", "OperatingStatement"];
+
+export function docTypesForModule(module: ModuleKind): DocType[] {
+  if (module === "income") return INCOME_DOC_TYPES;
+  if (module === "asset") return ASSET_DOC_TYPES;
+  return DSCR_DOC_TYPES;
+}
 
 export const DOC_TYPE_LABEL: Record<DocType, string> = {
   W2: "W-2 Wage Statement",
@@ -242,6 +286,9 @@ export const DOC_TYPE_LABEL: Record<DocType, string> = {
   "1120S": "Form 1120-S",
   BankStatement: "Bank Statement",
   InvestmentStatement: "Investment / Retirement Statement",
+  LeaseAgreement: "Lease Agreement",
+  RentSchedule: "Form 1007 Rent Schedule",
+  OperatingStatement: "Operating Statement (PITIA)",
 };
 
 // Build a fresh canonical document of the requested type.
@@ -263,6 +310,12 @@ function buildCanonical(docType: DocType): DocumentRecord {
       return bankStatement("Statement 05/01–05/31/2026", "Priya Nair", "000123456789");
     case "InvestmentStatement":
       return investmentStatement("Statement Q1 2026", "Priya Nair", "000987654321");
+    case "LeaseAgreement":
+      return leaseAgreement();
+    case "RentSchedule":
+      return rentSchedule1007();
+    case "OperatingStatement":
+      return operatingStatement();
     case "1120S":
     default:
       // 1120-S is modeled in the type system but not seeded; fall back to K-1 shape.
