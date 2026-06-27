@@ -137,6 +137,13 @@ Visuals follow the **AskBobAI Brand Guide (Edition 01, 2026)**:
   Green `#19D467` marks the moment of action (CTAs only). Brand red `#A92922`
   for errors. Confidence scale: green / amber / red.
 - **Logo** — sparkle mark in AskBob Green + Figtree Extra Bold wordmark.
+- **Brand-forward layout** — every primary page opens with a **sky-gradient
+  hero band** (`PageHero`, AskBob Blue → Cyan) carrying the eyebrow, title,
+  an Instrument-Serif accent word, and the page actions (CTAs render in green;
+  neutral actions use the translucent `btn-on-color` pill). A sparkle motif
+  watermarks the hero. The app closes on a near-black **Ink footer**
+  (`AppFooter`) with the wordmark, the prototype disclaimer, and the brand
+  color trio. Module icon tiles use the brand gradient throughout.
 
 ## Project layout
 

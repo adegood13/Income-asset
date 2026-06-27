@@ -19,6 +19,7 @@ import { UsersRolesSettings } from "../components/settings/UsersRolesSettings";
 import { TenantSettings } from "../components/settings/TenantSettings";
 import { SecuritySettings } from "../components/settings/SecuritySettings";
 import { SectionHeader } from "../components/settings/primitives";
+import { PageHero, HeroAccent } from "../components/PageHero";
 
 const PERMISSION_LABEL: Record<Permission, string> = {
   "pii:reveal": "Reveal PII",
@@ -44,13 +45,18 @@ export function Settings() {
 
   return (
     <div className="mx-auto max-w-[1100px] px-4 py-6 sm:px-6 lg:px-8">
-      <div className="mb-5">
-        <p className="eyebrow">Configuration</p>
-        <h1 className="mt-1 text-2xl font-bold text-navy">Settings</h1>
-      </div>
+      <PageHero
+        eyebrow="Configuration"
+        title="Settings"
+        subtitle={
+          <>
+            Rules, roles, tenant, and security — <HeroAccent>configured</HeroAccent> for the demo.
+          </>
+        }
+      />
 
       {/* Tab bar */}
-      <div className="mb-6 flex flex-wrap gap-1.5 border-b border-ink-200 pb-3">
+      <div className="mb-6 mt-6 flex flex-wrap gap-1.5 border-b border-ink-200 pb-3">
         {TABS.map((t) => {
           const Icon = t.icon;
           const active = tab === t.id;

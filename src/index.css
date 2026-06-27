@@ -99,6 +99,13 @@
       hover:bg-ink-50 hover:border-ink-400 active:bg-ink-100 disabled:opacity-50;
   }
 
+  /* Neutral action sitting ON a brand-gradient hero — translucent white pill. */
+  .btn-on-color {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-white/30 bg-white/10
+      px-5 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition
+      hover:bg-white/20 active:bg-white/25 disabled:opacity-50;
+  }
+
   /* Blue action — used where blue (the mood) is the right emphasis, not green. */
   .btn-blue {
     @apply inline-flex items-center justify-center gap-2 rounded-full bg-brand px-5 py-2.5

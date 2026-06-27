@@ -2,6 +2,7 @@ import { useState, type ReactNode } from "react";
 import { X } from "lucide-react";
 import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
+import { AppFooter } from "./AppFooter";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -30,9 +31,10 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       )}
 
-      <div className="lg:pl-64">
+      <div className="flex min-h-screen flex-col lg:pl-64">
         <TopBar onOpenMenu={() => setMobileOpen(true)} />
-        <main>{children}</main>
+        <main className="flex-1">{children}</main>
+        <AppFooter />
       </div>
     </div>
   );

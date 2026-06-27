@@ -17,6 +17,7 @@ import { downloadCSV } from "../lib/export";
 import { maskIdentifier } from "../mock/tokenization";
 import { formatDateTime } from "../lib/format";
 import { MODULE_LABEL } from "../lib/modules";
+import { PageHero, HeroAccent } from "../components/PageHero";
 
 export function Dashboard() {
   const { analyses, reveal } = useApp();
@@ -67,25 +68,27 @@ export function Dashboard() {
 
   return (
     <div className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="eyebrow">Workspace</p>
-          <h1 className="mt-1 text-2xl font-bold text-navy">Dashboard</h1>
-          <p className="mt-1 text-sm text-ink-600">
-            Every income and asset analysis, <span className="serif-accent text-brand">clearly</span> answered.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button className="btn-secondary" onClick={exportCsv}>
-            <Download className="h-4 w-4" />
-            Export
-          </button>
-          <button className="btn-primary" onClick={() => setModalOpen(true)}>
-            <Plus className="h-4 w-4" />
-            New analysis
-          </button>
-        </div>
-      </div>
+      <PageHero
+        eyebrow="Workspace"
+        title="Dashboard"
+        subtitle={
+          <>
+            Every income, asset, and DSCR analysis, <HeroAccent>clearly</HeroAccent> answered.
+          </>
+        }
+        actions={
+          <>
+            <button className="btn-on-color" onClick={exportCsv}>
+              <Download className="h-4 w-4" />
+              Export
+            </button>
+            <button className="btn-primary" onClick={() => setModalOpen(true)}>
+              <Plus className="h-4 w-4" />
+              New analysis
+            </button>
+          </>
+        }
+      />
 
       {/* Summary cards */}
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">

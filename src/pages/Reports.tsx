@@ -25,6 +25,7 @@ import {
 import { STATUS_LABEL } from "../components/StatusChip";
 import { downloadCSV } from "../lib/export";
 import { CONFIDENCE_HEX } from "../lib/confidence";
+import { PageHero, HeroAccent } from "../components/PageHero";
 
 const STATUS_FILL: Record<string, string> = {
   draft: "#B5B8BF",
@@ -81,38 +82,42 @@ export function Reports() {
 
   return (
     <div className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="eyebrow">Analytics</p>
-          <h1 className="mt-1 text-2xl font-bold text-navy">Reports</h1>
-          <p className="mt-1 text-sm text-ink-600">
-            Throughput, confidence, and overrides, <span className="serif-accent text-brand">at a glance</span>.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 rounded-lg border border-ink-200 bg-surface p-1">
-            <Calendar className="ml-1.5 h-4 w-4 text-ink-400" />
-            {DATE_RANGES.map((r) => (
-              <button
-                key={r.id}
-                onClick={() => setRangeId(r.id)}
-                className={`rounded-md px-2.5 py-1.5 text-xs font-semibold transition ${
-                  r.id === rangeId ? "bg-brand text-white" : "text-ink-500 hover:bg-ink-100"
-                }`}
-              >
-                {r.label}
-              </button>
-            ))}
-          </div>
+      <PageHero
+        eyebrow="Analytics"
+        title="Reports"
+        subtitle={
+          <>
+            Throughput, confidence, and overrides, <HeroAccent>at a glance</HeroAccent>.
+          </>
+        }
+        actions={
           <button className="btn-primary" onClick={exportReport}>
             <Download className="h-4 w-4" />
             Export report
           </button>
+        }
+      />
+
+      {/* Date-range toolbar */}
+      <div className="mt-6 flex items-center justify-end">
+        <div className="flex items-center gap-1 rounded-lg border border-ink-200 bg-surface p-1">
+          <Calendar className="ml-1.5 h-4 w-4 text-ink-400" />
+          {DATE_RANGES.map((r) => (
+            <button
+              key={r.id}
+              onClick={() => setRangeId(r.id)}
+              className={`rounded-md px-2.5 py-1.5 text-xs font-semibold transition ${
+                r.id === rangeId ? "bg-brand text-white" : "text-ink-500 hover:bg-ink-100"
+              }`}
+            >
+              {r.label}
+            </button>
+          ))}
         </div>
       </div>
 
       {/* KPI strip */}
-      <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="mt-4 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Kpi label="Analyses in range" value={filtered.length} />
         <Kpi label="Avg confidence" value={avgConf} mono />
         <Kpi label="Finalized" value={filtered.filter((a) => a.status === "finalized").length} />
